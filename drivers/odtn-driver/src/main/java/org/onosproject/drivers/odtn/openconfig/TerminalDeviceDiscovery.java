@@ -21,6 +21,16 @@ package org.onosproject.drivers.odtn.openconfig;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
+import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.SparseAnnotations;
+import org.onosproject.net.OchSignal;
+import org.onosproject.net.ChannelSpacing;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.CltSignalType;
+import org.onosproject.net.OduSignalType;
+import org.onosproject.net.optical.device.OduCltPortHelper;
 import org.slf4j.Logger;
 
 import java.util.HashMap;
@@ -32,33 +42,21 @@ import java.util.concurrent.CompletableFuture;
 
 import org.onlab.packet.ChassisId;
 
-
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.configuration.tree.xpath.XPathExpressionEngine;
 
 import org.onosproject.drivers.utilities.XmlConfigParser;
 
-import org.onosproject.net.Device;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceDescriptionDiscovery;
 import org.onosproject.net.device.DefaultDeviceDescription;
-import org.onosproject.net.device.DefaultPortDescription;
-import org.onosproject.net.device.DefaultPortDescription.Builder;
 import org.onosproject.net.device.PortDescription;
 
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 
-import org.onosproject.net.DefaultAnnotations;
-import org.onosproject.net.SparseAnnotations;
-import org.onosproject.net.Port.Type;
-import org.onosproject.net.PortNumber;
-import org.onosproject.net.OchSignal;
 import org.onosproject.net.optical.device.OchPortHelper;
-import org.onosproject.net.OduSignalType;
-import org.onosproject.net.ChannelSpacing;
 
 import org.onosproject.netconf.NetconfController;
 import org.onosproject.netconf.NetconfDevice;
@@ -71,9 +69,82 @@ import org.onosproject.odtn.behaviour.OdtnDeviceDescriptionDiscovery;
 
 
 /**
- * Driver Implementation of the DeviceDescrption discovery for OpenConfig
- * terminal devices.
+ * Driver Implementation of the DeviceDescription discovery for OpenConfig terminal devices.
  *
+ * As defined in OpenConfig each PORT component includes a subcomponent:
+ * --- client ports have a subcomponent of type oc-platform-types:TRANSCEIVER
+ * --- line   ports have a subcomponent of type oc-opt-types:OPTICAL_CHANNEL
+ *
+ * Tested with a model in which each port includes the following two properties:
+ * --- odtn-port-type: can assume values "client" and "line"
+ * --- onos-index: integer value
+ *
+ * Other assumptions:
+ * --- The port name is in the format "port-xxx"
+ * --- The subcomponent of type TRANSCEIVER has a name in the format "transceiver-xxx"
+ * --- The subcomponent of type OPTICAL_CHANNEL has a name in the format "channel-xxx"
+ * --- In the section <terminal-device><logical-channels> the channel with index xxx is associated to transceiver-xxx
+ *
+ * Where xxx is the value of the onos-index property (e.g., port-11801, transceiver-11801, channel-11801)
+ *
+ * See simplified example of a port component:
+ *
+ * //CHECKSTYLE:OFF
+ * <component>
+ *     <name>port-11801</name>
+ *     <state>
+ *         <name>port-11801</name>
+ *         <type>oc-platform-types:PORT</type>
+ *     </state>
+ *     <properties>
+ *         <property>
+ *             <name>odtn-port-type</name>
+ *             <state>
+ *                 <name>odtn-port-type</name>
+ *                 <value>client</value>
+ *             </state>
+ *         </property>
+ *         <property>
+ *             <name>onos-index</name>
+ *             <state>
+ *                 <name>onos-index</name>
+ *                 <value>11801</value>
+ *             </state>
+ *             </property>
+ *     </properties>
+ *     <subcomponents>
+ *         <subcomponent>
+ *             <name>transceiver-11801</name>
+ *             <state>
+ *                 <name>transceiver-11801</name>
+ *             </state>
+ *         </subcomponent>
+ *     </subcomponents>
+ * </component>
+ * <terminal-device>
+ *     <logical-channels>
+ *         <channel>
+ *             <index>11801</index>
+ *             <state>
+ *                 <index>11801</index>
+ *                 <description>Logical channel 11801</description>
+ *                 <admin-state>DISABLED</admin-state>
+ *                 <rate-class>oc-opt-types:TRIB_RATE_10G</rate-class>
+ *                 <trib-protocol>oc-opt-types:PROT_10GE_LAN</trib-protocol>
+ *                 <logical-channel-type>oc-opt-types:PROT_ETHERNET</logical-channel-type>
+ *                 <loopback-mode>NONE</loopback-mode>
+ *                 <test-signal>false</test-signal>
+ *                 <link-state>UP</link-state>
+ *             </state>
+ *             <ingress>
+ *                 <state>
+ *                     <transceiver>transceiver-11801</transceiver>
+ *                 </state>
+ *             </ingress>
+ *         </channel>
+ *     <logical-channels>
+ * <terminal-device>
+ * //CHECKSTYLE:ON
  */
 public class TerminalDeviceDiscovery
     extends AbstractHandlerBehaviour
@@ -81,6 +152,9 @@ public class TerminalDeviceDiscovery
 
     private static final String RPC_TAG_NETCONF_BASE =
         "<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">";
+
+    private static final String OC_PLATFORM_TYPES_OPERATING_SYSTEM =
+            "oc-platform-types:OPERATING_SYSTEM";
 
     private static final String RPC_CLOSE_TAG = "</rpc>";
 
@@ -188,8 +262,9 @@ public class TerminalDeviceDiscovery
         filter.append("<components xmlns='http://openconfig.net/yang/platform'>");
         filter.append(" <component>");
         filter.append("  <state>");
-        filter.append("   <type xmlns:oc-platform-types='http://openconfig.net/");
-        filter.append("yang/platform-types'>oc-platform-types:OPERATING_SYSTEM</type>");
+        filter.append("   <type xmlns:oc-platform-types='http://openconfig.net/yang/platform-types'>");
+        filter.append(OC_PLATFORM_TYPES_OPERATING_SYSTEM);
+        filter.append("   </type>");
         filter.append("  </state>");
         filter.append(" </component>");
         filter.append("</components>");
@@ -251,49 +326,52 @@ public class TerminalDeviceDiscovery
      */
     @Override
     public DeviceDescription discoverDeviceDetails() {
-        log.info("TerminalDeviceDiscovery::discoverDeviceDetails device {}", did());
         boolean defaultAvailable = true;
         SparseAnnotations annotations = DefaultAnnotations.builder().build();
 
-        // Other option "OTHER", we use ROADM for now
+        log.debug("TerminalDeviceDiscovery::discoverDeviceDetails device {}", did());
+
+        // Other option "OTN" or "OTHER", we use TERMINAL_DEVICE
         org.onosproject.net.Device.Type type =
             Device.Type.TERMINAL_DEVICE;
 
         // Some defaults
         String vendor       = "NOVENDOR";
+        String serialNumber = "0xCAFEBEEF";
         String hwVersion    = "0.2.1";
         String swVersion    = "0.2.1";
-        String serialNumber = "0xCAFEBEEF";
         String chassisId    = "128";
 
         // Get the session,
         NetconfSession session = getNetconfSession(did());
-        if (session != null) {
-            try {
-                String reply = session.get(getDeviceDetailsBuilder());
-                // <rpc-reply> as root node
-                XMLConfiguration xconf = (XMLConfiguration) XmlConfigParser.loadXmlString(reply);
-                vendor       = xconf.getString("data/components/component/state/mfg-name", vendor);
-                serialNumber = xconf.getString("data/components/component/state/serial-no", serialNumber);
-                // Requires OpenConfig >= 2018
-                swVersion    = xconf.getString("data/components/component/state/software-version", swVersion);
-                hwVersion    = xconf.getString("data/components/component/state/hardware-version", hwVersion);
-            } catch (Exception e) {
+        try {
+            String reply = session.get(getDeviceDetailsBuilder());
+            log.debug("REPLY to DeviceDescription {}", reply);
+
+            // <rpc-reply> as root node, software hardare version requires openconfig >= 2018
+            XMLConfiguration xconf = (XMLConfiguration) XmlConfigParser.loadXmlString(reply);
+            vendor       = xconf.getString("data.components.component.state.mfg-name", vendor);
+            serialNumber = xconf.getString("data.components.component.state.serial-no", serialNumber);
+            swVersion    = xconf.getString("data.components.component.state.software-version", swVersion);
+            hwVersion    = xconf.getString("data.components.component.state.hardware-version", hwVersion);
+        } catch (Exception e) {
+                log.error("TerminalDeviceDiscovery::discoverDeviceDetails - Failed to retrieve session {}", did());
                 throw new IllegalStateException(new NetconfException("Failed to retrieve version info.", e));
-            }
-        } else {
-            log.info("TerminalDeviceDiscovery::discoverDeviceDetails - No netconf session for {}", did());
         }
+
+        ChassisId cid = new ChassisId(Long.valueOf(chassisId, 10));
+
+        log.info("Device retrieved details");
         log.info("VENDOR    {}", vendor);
         log.info("HWVERSION {}", hwVersion);
         log.info("SWVERSION {}", swVersion);
         log.info("SERIAL    {}", serialNumber);
         log.info("CHASSISID {}", chassisId);
-        ChassisId cid = new ChassisId(Long.valueOf(chassisId, 10));
+
         return new DefaultDeviceDescription(did().uri(),
                     type, vendor, hwVersion, swVersion, serialNumber,
                     cid, defaultAvailable, annotations);
-        }
+    }
 
 
 
@@ -335,6 +413,7 @@ public class TerminalDeviceDiscovery
             XMLConfiguration xconf = (XMLConfiguration) XmlConfigParser.loadXmlString(rpcReply);
             xconf.setExpressionEngine(xpe);
 
+            log.debug("REPLY {}", rpcReply);
             HierarchicalConfiguration components = xconf.configurationAt("data/components");
             return parsePorts(components);
         } catch (Exception e) {
@@ -342,9 +421,6 @@ public class TerminalDeviceDiscovery
             return ImmutableList.of();
         }
     }
-
-
-
 
     /**
      * Parses port information from OpenConfig XML configuration.
@@ -364,8 +440,7 @@ public class TerminalDeviceDiscovery
      * //CHECKSTYLE:ON
      */
     protected List<PortDescription> parsePorts(HierarchicalConfiguration components) {
-        return components.configurationsAt("component")
-            .stream()
+        return components.configurationsAt("component").stream()
             .filter(component -> {
                     return !component.getString("name", "unknown").equals("unknown") &&
                     component.getString("state/type", "unknown").equals(OC_PLATFORM_TYPES_PORT);
@@ -424,8 +499,7 @@ public class TerminalDeviceDiscovery
     private boolean hasOpticalChannelSubComponent(
             HierarchicalConfiguration component,
             HierarchicalConfiguration components) {
-        return hasSubComponentOfType(component, components,
-                OC_TRANSPORT_TYPES_OPTICAL_CHANNEL);
+        return hasSubComponentOfType(component, components, OC_TRANSPORT_TYPES_OPTICAL_CHANNEL);
     }
 
 
@@ -441,8 +515,7 @@ public class TerminalDeviceDiscovery
     private boolean hasTransceiverSubComponent(
             HierarchicalConfiguration component,
             HierarchicalConfiguration components) {
-        return hasSubComponentOfType(component, components,
-                OC_PLATFORM_TYPES_TRANSCEIVER);
+        return hasSubComponentOfType(component, components, OC_PLATFORM_TYPES_TRANSCEIVER);
     }
 
 
@@ -461,9 +534,12 @@ public class TerminalDeviceDiscovery
         Map<String, String> annotations = new HashMap<>();
         String name = component.getString("name");
         String type = component.getString("state/type");
+
         log.info("Parsing Component {} type {}", name, type);
+
         annotations.put(OdtnDeviceDescriptionDiscovery.OC_NAME, name);
         annotations.put(OdtnDeviceDescriptionDiscovery.OC_TYPE, type);
+
         // Store all properties as port properties
         component.configurationsAt("properties/property")
             .forEach(property -> {
@@ -494,20 +570,20 @@ public class TerminalDeviceDiscovery
         // Build the port
         // NOTE: using portNumber(id, name) breaks things. Intent parsing, port resorce management, etc. There seems
         // to be an issue with resource mapping
-        if (annotations.get(PORT_TYPE)
-                .equals(OdtnPortType.CLIENT.value())) {
-            log.debug("Adding CLIENT port");
-            Builder builder = DefaultPortDescription.builder();
-            builder.type(Type.PACKET);
-            builder.withPortNumber(portNum);
-            builder.annotations(DefaultAnnotations.builder().putAll(annotations).build());
-            return builder.build();
+        if (annotations.get(PORT_TYPE).equals(OdtnPortType.CLIENT.value())) {
+            log.debug("PORT {} number {} added as CLIENT port", name, portNum);
+
+            return OduCltPortHelper.oduCltPortDescription(portNum,
+                    true,
+                    CltSignalType.CLT_10GBE,
+                    DefaultAnnotations.builder().putAll(annotations).build());
         }
-        if (annotations.get(PORT_TYPE)
-                .equals(OdtnPortType.LINE.value())) {
-            log.debug("Adding LINE port");
+        if (annotations.get(PORT_TYPE).equals(OdtnPortType.LINE.value())) {
+            log.debug("PORT {} number {} added as LINE port", name, portNum);
+
             // TODO: To be configured
             OchSignal signalId = OchSignal.newDwdmSlot(ChannelSpacing.CHL_50GHZ, 1);
+
             return OchPortHelper.ochPortDescription(
                     portNum, true,
                     OduSignalType.ODU4, // TODO Client signal to be discovered
@@ -515,7 +591,7 @@ public class TerminalDeviceDiscovery
                     signalId,
                     DefaultAnnotations.builder().putAll(annotations).build());
         }
-        log.error("Unknown port type");
+        log.error("PORT {} number {} is of UNKNOWN type", name, portNum);
         return null;
     }
 }
