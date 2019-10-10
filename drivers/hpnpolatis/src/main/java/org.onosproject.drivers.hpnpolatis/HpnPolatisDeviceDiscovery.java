@@ -24,7 +24,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.onlab.packet.ChassisId;
 import org.onlab.util.Frequency;
-import org.onlab.util.Spectrum;
 import org.onosproject.net.*;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DeviceDescriptionDiscovery;
@@ -41,7 +40,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import static org.onosproject.net.optical.device.OmsPortHelper.omsPortDescription;
-import static org.onosproject.net.optical.device.OchPortHelper.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 
@@ -123,7 +121,7 @@ public class HpnPolatisDeviceDiscovery extends AbstractHandlerBehaviour
                         STOP_CENTER_FREQ,
                         CHANNEL_SPACING.frequency(),
                         annotations);
-}
+    }
 
     /**
      * Get the deviceId for which the methods apply.
@@ -137,6 +135,5 @@ public class HpnPolatisDeviceDiscovery extends AbstractHandlerBehaviour
     private RestSBController getController(){
         return handler().get(RestSBController.class);
     }
-
 
 }

@@ -1,11 +1,12 @@
 COMPILE_DEPS = CORE_DEPS + JACKSON + [
+<<<<<<< HEAD
     "//drivers/utilities:onos-drivers-utilities",
     "//drivers/default:onos-drivers-default",
     "//apps/optical-model:onos-apps-optical-model",
     "//drivers/optical:onos-drivers-optical",
     "@javax_ws_rs_api//jar",
     "//utils/rest:onlab-rest",
-    "//protocols/rest/api:onos-protocols-rest-api",
+    "//protocols/rest/api:onos-protocols-rest-api"
 ]
 
 BUNDLES = [
@@ -19,12 +20,6 @@ osgi_jar_with_tests(
     test_deps = TEST_ADAPTERS,
     deps = COMPILE_DEPS,
 )
-
-APPS = [
-    "org.onosproject.restsb",
-    "org.onosproject.drivers.optical",
-    "org.onosproject.optical-model",
-]
 
 onos_app(
     app_name = "org.onosproject.drivers.hpnpolatis",

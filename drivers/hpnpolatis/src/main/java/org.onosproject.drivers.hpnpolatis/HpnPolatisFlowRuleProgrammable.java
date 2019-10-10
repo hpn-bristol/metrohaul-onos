@@ -159,7 +159,6 @@ public class HpnPolatisFlowRuleProgrammable extends AbstractHandlerBehaviour imp
                     .findAny()
                     .orElse(null);
 
-
             flowNode2.put(Long.toString(inPortNumber.toLong()), (int)outPortNumber.toLong());
 
             flowNode.set("remove", flowNode2);
