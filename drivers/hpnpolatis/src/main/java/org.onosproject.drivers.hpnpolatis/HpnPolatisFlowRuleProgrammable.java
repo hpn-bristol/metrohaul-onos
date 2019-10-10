@@ -132,9 +132,11 @@ public class HpnPolatisFlowRuleProgrammable extends AbstractHandlerBehaviour imp
         RestSBController restSBController = handler().get(RestSBController.class);
 
         for(FlowRule rule: rules){
-
             ObjectMapper mapper = new ObjectMapper();
             ObjectNode flowNode = mapper.createObjectNode();
+
+            ObjectMapper mapper2 = new ObjectMapper();
+            ObjectNode flowNode2 = mapper.createObjectNode();
 
             Set<Criterion> criteria = rule.selector().criteria();
             List<Instruction> instructions = rule.treatment().immediate();
@@ -151,9 +153,12 @@ public class HpnPolatisFlowRuleProgrammable extends AbstractHandlerBehaviour imp
                     .findAny()
                     .orElse(null);
 
-            flowNode.put(Long.toString(inPortNumber.toLong()), (int)outPortNumber.toLong());
 
-            int response = restSBController.delete(did(), "/connections/",
+            flowNode2.put(Long.toString(inPortNumber.toLong()), (int)outPortNumber.toLong());
+
+            flowNode.set("remove", flowNode2);
+
+            int response = restSBController.patch(did(), "/connections/",
                     new ByteArrayInputStream(flowNode.toString().getBytes()), JSON);
 
             log.info("Flow deleted with response: {}", response);
