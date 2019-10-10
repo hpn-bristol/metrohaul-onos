@@ -110,6 +110,7 @@ ONOS_DRIVERS = [
     "//drivers/odtn-driver:onos-drivers-odtn-driver-oar",
     "//drivers/stratum:onos-drivers-stratum-oar",
     "//drivers/metrohaul:onos-drivers-metrohaul-oar",
+    "//drivers/hpnpolatis:onos-drivers-hpnpolatis-oar",
 ]
 
 ONOS_PROVIDERS = [
@@ -255,6 +256,7 @@ ONOS_APPS = [
     "//apps/workflow:onos-apps-workflow-oar",
     "//apps/workflow/ofoverlay:onos-apps-workflow-ofoverlay-oar",
     "//apps/packet-throttle:onos-apps-packet-throttle-oar",
+    "//apps/aaa_test:onos-apps-aaa_test-oar",
 ]
 
 PROTOCOL_APPS = [
