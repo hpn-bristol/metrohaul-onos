@@ -24,6 +24,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.onlab.packet.ChassisId;
 import org.onlab.util.Frequency;
+import org.onlab.util.Spectrum;
 import org.onosproject.net.*;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DeviceDescriptionDiscovery;
@@ -40,6 +41,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import static org.onosproject.net.optical.device.OmsPortHelper.omsPortDescription;
+import static org.onosproject.net.optical.device.OchPortHelper.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 
@@ -58,7 +60,7 @@ public class HpnPolatisDeviceDiscovery extends AbstractHandlerBehaviour
     @Override
     public DeviceDescription discoverDeviceDetails() {
 
-        Device.Type type = Device.Type.FIBER_SWITCH;
+        Device.Type type = Device.Type.ROADM;
 
         String vendor       = "HPN";
         String serialNumber = "1111";
@@ -109,6 +111,7 @@ public class HpnPolatisDeviceDiscovery extends AbstractHandlerBehaviour
     }
 
     private PortDescription parsePort(Integer currentPort){
+
         PortNumber portNumber = PortNumber.portNumber((long)currentPort);
         DefaultAnnotations annotations = DefaultAnnotations.builder()
                 .set(AnnotationKeys.PORT_NAME, "port-" + currentPort)

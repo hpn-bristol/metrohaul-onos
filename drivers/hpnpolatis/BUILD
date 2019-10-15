@@ -1,5 +1,4 @@
 COMPILE_DEPS = CORE_DEPS + JACKSON + [
-<<<<<<< HEAD
     "//drivers/utilities:onos-drivers-utilities",
     "//drivers/default:onos-drivers-default",
     "//apps/optical-model:onos-apps-optical-model",
@@ -20,6 +19,12 @@ osgi_jar_with_tests(
     test_deps = TEST_ADAPTERS,
     deps = COMPILE_DEPS,
 )
+
+APPS = [
+    "org.onosproject.restsb",
+    "org.onosproject.drivers.optical",
+    "org.onosproject.optical-model",
+]
 
 onos_app(
     app_name = "org.onosproject.drivers.hpnpolatis",
