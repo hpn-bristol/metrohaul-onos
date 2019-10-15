@@ -1,4 +1,4 @@
-/*
+/*oms_och_links_polatis_openconfig.json
  * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
