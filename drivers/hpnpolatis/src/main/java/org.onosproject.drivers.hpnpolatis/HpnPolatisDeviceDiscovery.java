@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.onlab.packet.ChassisId;
+import org.onlab.util.Frequency;
 import org.onlab.util.Spectrum;
 import org.onosproject.net.*;
 import org.onosproject.net.device.DefaultDeviceDescription;
@@ -40,6 +41,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import static org.onosproject.net.optical.device.OmsPortHelper.omsPortDescription;
+import static org.onosproject.net.optical.device.OchPortHelper.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 
@@ -49,10 +51,16 @@ public class HpnPolatisDeviceDiscovery extends AbstractHandlerBehaviour
     public static final MediaType JSON = MediaType.valueOf(MediaType.APPLICATION_JSON);
     private static final Logger log = getLogger(HpnPolatisDeviceDiscovery.class);
 
+    public static final ChannelSpacing CHANNEL_SPACING = ChannelSpacing.CHL_50GHZ;
+    // 191.35 1566.72 C1
+    public static final Frequency START_CENTER_FREQ = Frequency.ofGHz(191_350);
+    // 196.10 1528.77 C96  (96 channels at 50 GHz)
+    public static final Frequency STOP_CENTER_FREQ = Frequency.ofGHz(196_100);
+
     @Override
     public DeviceDescription discoverDeviceDetails() {
 
-        Device.Type type = Device.Type.FIBER_SWITCH;
+        Device.Type type = Device.Type.ROADM;
 
         String vendor       = "HPN";
         String serialNumber = "1111";
@@ -73,7 +81,7 @@ public class HpnPolatisDeviceDiscovery extends AbstractHandlerBehaviour
         DeviceId deviceId = did();
         List<PortDescription> portDescriptions = null;
         try {
-            RestSBController restSBController = handler().get(RestSBController.class);
+            RestSBController restSBController = getController();
             InputStream inputStream = restSBController.get(deviceId, "/ports/", MediaType.APPLICATION_JSON_TYPE);
             portDescriptions = parsePorts(new ObjectMapper().readTree(inputStream));
         }
@@ -103,20 +111,30 @@ public class HpnPolatisDeviceDiscovery extends AbstractHandlerBehaviour
     }
 
     private PortDescription parsePort(Integer currentPort){
+
         PortNumber portNumber = PortNumber.portNumber((long)currentPort);
         DefaultAnnotations annotations = DefaultAnnotations.builder()
                 .set(AnnotationKeys.PORT_NAME, "port-" + currentPort)
                 .build();
 
-                return omsPortDescription(
-                        portNumber,
-                        true,
-                        Spectrum.C_BAND_MIN,
-                        Spectrum.C_BAND_MAX,
-                        ChannelSpacing.CHL_50GHZ.frequency(),
-                        annotations
-                );
-        //return null;
+                if(checkPort(currentPort)){
+                    OchSignal signalId = OchSignal.newDwdmSlot(ChannelSpacing.CHL_50GHZ, 1);
+                    return ochPortDescription(portNumber,
+                            true,
+                            OduSignalType.ODU4,
+                            true,
+                            signalId,
+                            annotations);
+                }
+                else{
+                    return omsPortDescription(
+                            portNumber,
+                            true,
+                            START_CENTER_FREQ,
+                            STOP_CENTER_FREQ,
+                            CHANNEL_SPACING.frequency(),
+                            annotations);
+                }
     }
 
     /**
@@ -126,6 +144,27 @@ public class HpnPolatisDeviceDiscovery extends AbstractHandlerBehaviour
      */
     private DeviceId did() {
         return handler().data().deviceId();
+    }
+
+    private boolean checkPort(Integer currentPort){
+
+        if(getController().getDevice(did()).url().equals("/oxc:2")){
+            return(currentPort==1);
+        }
+
+        if(getController().getDevice(did()).url().equals("/oxc:3")){
+            return(currentPort==4);
+        }
+
+        if(getController().getDevice(did()).url().equals("/oxc:4")){
+            return(currentPort==3);
+        }
+
+        return false;
+    }
+
+    private RestSBController getController(){
+        return handler().get(RestSBController.class);
     }
 
 

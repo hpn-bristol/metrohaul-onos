@@ -27,6 +27,7 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.flow.*;
 import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.flow.criteria.OchSignalCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
@@ -93,6 +94,7 @@ public class HpnPolatisFlowRuleProgrammable extends AbstractHandlerBehaviour imp
 
         RestSBController restSBController = handler().get(RestSBController.class);
 
+        outerloop:
         for(FlowRule rule: rules){
 
             ObjectMapper mapper = new ObjectMapper();
@@ -100,6 +102,10 @@ public class HpnPolatisFlowRuleProgrammable extends AbstractHandlerBehaviour imp
 
             Set<Criterion> criteria = rule.selector().criteria();
             List<Instruction> instructions = rule.treatment().immediate();
+
+            for (Criterion criterion : criteria)
+                if (criterion instanceof OchSignalCriterion)
+                    continue outerloop;
 
             PortNumber inPortNumber = criteria.stream()
                     .filter(c -> c instanceof PortCriterion)
@@ -188,7 +194,7 @@ public class HpnPolatisFlowRuleProgrammable extends AbstractHandlerBehaviour imp
                 String fieldName = fieldNames.next();
                 JsonNode field = jsonNode.get(fieldName);
 
-                log.info("HPNPolatis, Flow is: " + fieldName + ": " + field.asInt());
+                //log.info("HPNPolatis, Flow is: " + fieldName + ": " + field.asInt());
 
                 TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
                 selectorBuilder.matchInPort(PortNumber.portNumber(fieldName));

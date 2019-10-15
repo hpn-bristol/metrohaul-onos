@@ -18,6 +18,7 @@
 
 package org.onosproject.drivers.metrohaul;
 
+import org.onosproject.net.optical.OpticalDevice;
 import org.osgi.service.component.annotations.Component;
 import org.onosproject.net.driver.AbstractDriverLoader;
 
@@ -27,6 +28,10 @@ import org.onosproject.net.driver.AbstractDriverLoader;
  */
 @Component(immediate = true)
 public class MetrohaulDriversLoader extends AbstractDriverLoader {
+
+    // OSGI: help bundle plugin discover runtime package dependency.
+    @SuppressWarnings("unused")
+    private OpticalDevice optical;
 
     public MetrohaulDriversLoader() {
         super("/metrohaul-drivers.xml");
