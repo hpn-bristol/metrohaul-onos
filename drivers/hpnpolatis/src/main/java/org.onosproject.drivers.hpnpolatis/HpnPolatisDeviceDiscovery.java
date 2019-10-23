@@ -60,7 +60,7 @@ public class HpnPolatisDeviceDiscovery extends AbstractHandlerBehaviour
     @Override
     public DeviceDescription discoverDeviceDetails() {
 
-        Device.Type type = Device.Type.ROADM;
+        Device.Type type = Device.Type.FIBER_SWITCH;
 
         String vendor       = "HPN";
         String serialNumber = "1111";
@@ -111,31 +111,19 @@ public class HpnPolatisDeviceDiscovery extends AbstractHandlerBehaviour
     }
 
     private PortDescription parsePort(Integer currentPort){
-
         PortNumber portNumber = PortNumber.portNumber((long)currentPort);
         DefaultAnnotations annotations = DefaultAnnotations.builder()
                 .set(AnnotationKeys.PORT_NAME, "port-" + currentPort)
                 .build();
 
-                if(checkPort(currentPort)){
-                    OchSignal signalId = OchSignal.newDwdmSlot(ChannelSpacing.CHL_50GHZ, 1);
-                    return ochPortDescription(portNumber,
-                            true,
-                            OduSignalType.ODU4,
-                            true,
-                            signalId,
-                            annotations);
-                }
-                else{
-                    return omsPortDescription(
-                            portNumber,
-                            true,
-                            START_CENTER_FREQ,
-                            STOP_CENTER_FREQ,
-                            CHANNEL_SPACING.frequency(),
-                            annotations);
-                }
-    }
+                return omsPortDescription(
+                        portNumber,
+                        true,
+                        START_CENTER_FREQ,
+                        STOP_CENTER_FREQ,
+                        CHANNEL_SPACING.frequency(),
+                        annotations);
+}
 
     /**
      * Get the deviceId for which the methods apply.
@@ -144,23 +132,6 @@ public class HpnPolatisDeviceDiscovery extends AbstractHandlerBehaviour
      */
     private DeviceId did() {
         return handler().data().deviceId();
-    }
-
-    private boolean checkPort(Integer currentPort){
-
-        if(getController().getDevice(did()).url().equals("/oxc:2")){
-            return(currentPort==1);
-        }
-
-        if(getController().getDevice(did()).url().equals("/oxc:3")){
-            return(currentPort==4);
-        }
-
-        if(getController().getDevice(did()).url().equals("/oxc:4")){
-            return(currentPort==3);
-        }
-
-        return false;
     }
 
     private RestSBController getController(){
