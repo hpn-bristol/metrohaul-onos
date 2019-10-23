@@ -60,7 +60,7 @@ public class HpnPolatisDeviceDiscovery extends AbstractHandlerBehaviour
     @Override
     public DeviceDescription discoverDeviceDetails() {
 
-        Device.Type type = Device.Type.ROADM;
+        Device.Type type = Device.Type.FIBER_SWITCH;
 
         String vendor       = "HPN";
         String serialNumber = "1111";
@@ -111,7 +111,6 @@ public class HpnPolatisDeviceDiscovery extends AbstractHandlerBehaviour
     }
 
     private PortDescription parsePort(Integer currentPort){
-
         PortNumber portNumber = PortNumber.portNumber((long)currentPort);
         DefaultAnnotations annotations = DefaultAnnotations.builder()
                 .set(AnnotationKeys.PORT_NAME, "port-" + currentPort)
@@ -125,7 +124,7 @@ public class HpnPolatisDeviceDiscovery extends AbstractHandlerBehaviour
                         CHANNEL_SPACING.frequency(),
                         annotations);
     }
-
+}
     /**
      * Get the deviceId for which the methods apply.
      *
