@@ -173,13 +173,15 @@ public class OpenRoadmConnection {
                 + srcPort.annotations().value("logical-connection-point");
 
         //Remove following line to be consistent with OpenRoadm standard
-        srcMcSupportingInterface = srcMcSupportingInterface.substring(0,9) + "TX";
+//RM        srcMcSupportingInterface = srcMcSupportingInterface.substring(0,9) + "TX";
+//        srcMcSupportingInterface = srcMcSupportingInterface.substring(0,9) + "RX";
 
         dstMcSupportingInterface = "OMS-"
                 + dstPort.annotations().value("logical-connection-point");
 
         //Remove following line to be consistent with OpenRoadm standard
-        dstMcSupportingInterface = dstMcSupportingInterface.substring(0,9) + "RX";
+//RM        dstMcSupportingInterface = dstMcSupportingInterface.substring(0,9) + "RX";
+//        dstMcSupportingInterface = dstMcSupportingInterface.substring(0,9) + "TX";
         //********************************//
 
         srcNmcSupportingInterface = srcMcName;
@@ -231,7 +233,8 @@ public class OpenRoadmConnection {
                 + dstPort.annotations().value("logical-connection-point");
 
         //Remove following line to be consistent with OpenRoadm standard
-        dstMcSupportingInterface = dstMcSupportingInterface.substring(0,9) + "RX";
+//RM        dstMcSupportingInterface = dstMcSupportingInterface.substring(0,9) + "RX";
+//        dstMcSupportingInterface = dstMcSupportingInterface.substring(0,9) + "TX";
         //********************************//
 
         srcNmcSupportingInterface = ""; //AddLink does not use this parameter
@@ -281,7 +284,8 @@ public class OpenRoadmConnection {
                 + srcPort.annotations().value("logical-connection-point");
 
         //Remove following line to be consistent with OpenRoadm standard
-        srcMcSupportingInterface = srcMcSupportingInterface.substring(0,9) + "TX";
+//RM        srcMcSupportingInterface = srcMcSupportingInterface.substring(0,9) + "TX";
+//        srcMcSupportingInterface = srcMcSupportingInterface.substring(0,9) + "RX";
         //********************************//
 
         srcNmcSupportingInterface = srcMcName;

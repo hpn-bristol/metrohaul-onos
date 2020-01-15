@@ -302,7 +302,7 @@ public class OpenRoadmDeviceDescription extends AbstractHandlerBehaviour
                 log.info("OpenRoadmDeviceDescription::discoverDeviceDetails - Resetting RUNNING {}", did());
                 //session.lock();
                 boolean ret = session.copyConfig(DatastoreId.RUNNING ,DatastoreId.STARTUP);
-                // session.unlock();
+                //session.unlock();
                 if (ret) {
                     log.info("Operation {}", ret? "ok" : "failed");
                 }
@@ -469,33 +469,11 @@ public class OpenRoadmDeviceDescription extends AbstractHandlerBehaviour
         String lcp  = port.getString("logical-connection-point", "");
         annotations.put("logical-connection-point", lcp);
 
-        String qual = port.getString("port-qual", "unnamed");
-
-        // Rules
-        // port N-M --> N*100+M
-        // ext-txN --> 300+N
-        // ext-rxN --> 400+N
-        // int-txN --> 500+N
-        // int-rxN --> 600+N
-
-        long portNum = 0;
-        String aux = name;
-        if (name.startsWith("ext-tx")) {
-          portNum = 300 + Long.parseLong(aux.replaceAll("\\D+", ""));
-        } else if (name.startsWith("ext-rx")) {
-          portNum = 400 + Long.parseLong(aux.replaceAll("\\D+", ""));
-        } else if (name.startsWith("int-tx")) {
-          portNum = 500 + Long.parseLong(aux.replaceAll("\\D+", ""));
-        } else if (name.startsWith("int-rx")) {
-          portNum = 600 + Long.parseLong(aux.replaceAll("\\D+", ""));
-        } else {
-          String[] parts = name.split("-");
-          portNum = Long.parseLong(parts[0])*100 + Long.parseLong(parts[1]);
-        }
-
-        // log.error("discoverPortDetails port {} num {}", name, portNum);
-
+        String label = port.getString("label", "");
+        long portNum = Long.parseLong(label);
         PortNumber pNum = PortNumber.portNumber(portNum);
+
+        String qual = port.getString("port-qual", "unnamed");
         if (qual.equals("roadm-external")) {
             if (port.getString("port-wavelength-type", "wavelength").equals("wavelength")) {
                 //OchSignal is needed for OchPortDescription constructor, but it's tunable
