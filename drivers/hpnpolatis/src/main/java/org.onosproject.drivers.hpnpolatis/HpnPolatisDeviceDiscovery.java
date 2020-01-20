@@ -124,7 +124,7 @@ public class HpnPolatisDeviceDiscovery extends AbstractHandlerBehaviour
                         CHANNEL_SPACING.frequency(),
                         annotations);
     }
-}
+
     /**
      * Get the deviceId for which the methods apply.
      *
