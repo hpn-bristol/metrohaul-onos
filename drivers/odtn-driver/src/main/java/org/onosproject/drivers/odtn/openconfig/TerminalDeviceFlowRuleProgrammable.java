@@ -884,7 +884,6 @@ public class TerminalDeviceFlowRuleProgrammable
                 confirmedRules.addAll(fetchClientConnectionFromDevice(clientPortNumber, linePortNumber));
             }
         }
-
         //Returns rules that are both on the device and on the cache
         if (confirmedRules.size() != 0) {
             log.info("fetchConnectionsFromDevice {} number of confirmed rules {}", did(), confirmedRules.size());
