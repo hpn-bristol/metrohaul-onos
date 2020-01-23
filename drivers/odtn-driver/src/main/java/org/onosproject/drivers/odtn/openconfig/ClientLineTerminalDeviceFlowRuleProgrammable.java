@@ -20,6 +20,7 @@ package org.onosproject.drivers.odtn.openconfig;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.configuration.HierarchicalConfiguration;
+import org.onlab.packet.VlanId;
 import org.onlab.util.Frequency;
 import org.onlab.util.Spectrum;
 import org.onosproject.drivers.odtn.impl.DeviceConnectionCache;
@@ -410,15 +411,60 @@ public class ClientLineTerminalDeviceFlowRuleProgrammable
         sb.append("</config>");
         sb.append("<logical-channel-assignments>");
         sb.append("<assignment>");
-        sb.append("<index>" + assignmentIndex + "</index>");
+        sb.append("<index>" + line + "</index>");
         sb.append("<config>");
+        sb.append("            <index>" + line + "</index>");
         sb.append("<logical-channel>" + line + "</logical-channel>");
         sb.append("<allocation>" + allocationIndex + "</allocation>");
+        sb.append("<assignment-type>LOGICAL_CHANNEL</assignment-type>");
         sb.append("</config>");
         sb.append("</assignment>");
         sb.append("</logical-channel-assignments>");
         sb.append("</channel>");
         sb.append("</logical-channels>");
+        sb.append("</terminal-device>");
+
+        boolean ok =
+                session.editConfig(DatastoreId.RUNNING, null, sb.toString());
+        if (!ok) {
+            throw new NetconfException("error writing logical channel assignment");
+        }
+    }
+
+    private void setLogicalChannelAssignment_vlan(NetconfSession session, String operation, String client, String vlanId,
+                                                  String line, String assignmentIndex, String allocationIndex)
+            throws NetconfException {
+
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("<terminal-device xmlns='http://openconfig.net/yang/terminal-device'>");
+        sb.append("  <logical-channels>");
+        sb.append("    <channel>");
+        sb.append("      <index>" + client + "</index>");
+        sb.append("      <config>");
+        sb.append("        <admin-state>" + operation + "</admin-state>");
+        sb.append("      </config>");
+        sb.append("        <logical-channel-assignments>");
+        sb.append("          <assignment>");
+        sb.append("          <index>" + line + "</index>");
+        sb.append("          <config>");
+        sb.append("            <index>" + line + "</index>");
+        sb.append("            <logical-channel>" + line + "</logical-channel>");
+        sb.append("            <allocation>" + allocationIndex + "</allocation>");
+        sb.append("            <assignment-type>LOGICAL_CHANNEL</assignment-type>");
+        sb.append("            <vlans>");
+        sb.append("              <vlan>");
+        sb.append("                <index>" + vlanId + "</index>");
+        sb.append("                <config>");
+        sb.append("                  <vlan-id>" + vlanId + "</vlan-id>");
+        sb.append("                </config>");
+        sb.append("              </vlan>");
+        sb.append("            </vlans>");
+        sb.append("          </config>");
+        sb.append("          </assignment>");
+        sb.append("        </logical-channel-assignments>");
+        sb.append("    </channel>");
+        sb.append("  </logical-channels>");
         sb.append("</terminal-device>");
 
         boolean ok =
@@ -509,6 +555,33 @@ public class ClientLineTerminalDeviceFlowRuleProgrammable
             }
         }
 
+        //Configuration of CLIENT side + VLAN, used for OpticalCircuit intents
+        //--- associate the client port as well as VLAN to the line port
+        //--- enable the client port
+        //
+
+        if (rule.type == TerminalDeviceFlowRule.Type.CLIENT_INGRESS_VLAN){
+
+            String clientPortName;
+            String linePortName;
+            String vlanId;
+
+            clientPortName = rule.inPort().toString();
+            linePortName = rule.outPort().toString();
+            vlanId = rule.vlanId().toString();
+
+            log.info("Sending CLIENT FlowRule to device {} CLIENT port: {}, Vlan ID: {}, LINE port {}",
+                    did(), clientPortName, vlanId, linePortName);
+
+            try {
+                setLogicalChannelAssignment_vlan(session, OPERATION_ENABLE, clientPortName, vlanId, linePortName,
+                        DEFAULT_ASSIGNMENT_INDEX, DEFAULT_ALLOCATION_INDEX);
+            } catch (NetconfException e) {
+                log.error("Error setting the logical channel assignment");
+                return false;
+            }
+        }
+
         return true;
     }
 
@@ -556,6 +629,33 @@ public class ClientLineTerminalDeviceFlowRuleProgrammable
 
             try {
                 setLogicalChannelAssignment(session, OPERATION_DISABLE, clientPortName, linePortName,
+                        DEFAULT_ASSIGNMENT_INDEX, DEFAULT_ALLOCATION_INDEX);
+            } catch (NetconfException e) {
+                log.error("Error disabling the logical channel assignment");
+                return false;
+            }
+        }
+
+        //Configuration of CLIENT side + VLAN, used for OpticalCircuit intents
+        //--- associate the client port as well as VLAN to the line port
+        //--- enable the client port
+        //
+
+        if (rule.type == TerminalDeviceFlowRule.Type.CLIENT_INGRESS_VLAN){
+
+            String clientPortName;
+            String linePortName;
+            String vlanId;
+
+            clientPortName = rule.inPort().toString();
+            linePortName = rule.outPort().toString();
+            vlanId = rule.vlanId().toString();
+
+            log.info("Removing CLIENT FlowRule device {} CLIENT port: {}, Vlan ID: {}, LINE port {}",
+                    did(), clientPortName, vlanId, linePortName);
+
+            try {
+                setLogicalChannelAssignment_vlan(session, OPERATION_DISABLE, clientPortName, vlanId, linePortName,
                         DEFAULT_ASSIGNMENT_INDEX, DEFAULT_ALLOCATION_INDEX);
             } catch (NetconfException e) {
                 log.error("Error disabling the logical channel assignment");
@@ -766,6 +866,70 @@ public class ClientLineTerminalDeviceFlowRuleProgrammable
         return confirmedRules;
     }
 
+    private List<FlowRule> fetchClientConnectionFromDevice(PortNumber clientPortNumber, PortNumber linePortNumber,
+                                                           VlanId vlanId) {
+        List<FlowRule> confirmedRules = new ArrayList<>();
+        FlowRule cacheRule;
+        NetconfSession session = getNetconfSession();
+
+        //Build the corresponding flow rule as expected
+        //Selector including port & VLAN
+        //Treatment including port
+
+        log.debug("fetchClientConnectionsFromDevice {} client {} line {} vlan {}",
+                did(), clientPortNumber, linePortNumber, vlanId);
+
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchInPort(clientPortNumber)
+                .matchVlanId(vlanId)
+                .build();
+
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .setOutput(linePortNumber)
+                .build();
+
+        //Retrieved rules and cached rules are considered equal if both selector and treatment are equal
+        cacheRule = null;
+
+        if (getConnectionCache().size(did()) != 0) {
+            cacheRule = getConnectionCache().get(did()).stream()
+                    .filter(r -> (r.selector().equals(selector) && r.treatment().equals(treatment)))
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        //Include the rule to the retrieved rules if found in cache
+        if ((cacheRule != null)) {
+            confirmedRules.add(cacheRule);
+            log.debug("fetchClientConnectionsFromDevice {} CLIENT rule in the cache {}",
+                    did(), cacheRule);
+        } else {
+            log.warn("fetchClientConnectionsFromDevice {} ADD CLIENT rule not found in cache", did());
+        }
+
+        if (cacheRule == null) {
+            log.warn("fetchClientConnectionsFromDevice {} rule not included in the cache", did());
+
+            FlowRule deviceRule = DefaultFlowRule.builder()
+                    .forDevice(data().deviceId())
+                    .makePermanent()
+                    .withSelector(selector)
+                    .withTreatment(treatment)
+                    .withCookie(DEFAULT_RULE_COOKIE)
+                    .withPriority(DEFAULT_RULE_PRIORITY)
+                    .build();
+
+            try {
+                //TODO this is not required if allowExternalFlowRules
+                TerminalDeviceFlowRule addRule = new TerminalDeviceFlowRule(deviceRule, getLinePorts());
+                removeFlowRule(session, addRule);
+            } catch (NetconfException e) {
+                openConfigError("Error removing CLIENT rule from device", e);
+            }
+        }
+        return confirmedRules;
+    }
+
     /**
      * Fetches list of connections from device.
      *
@@ -804,6 +968,7 @@ public class ClientLineTerminalDeviceFlowRuleProgrammable
         requestFilter.append("        <assignment>");
         requestFilter.append("          <config>");
         requestFilter.append("            <logical-channel/>");
+        requestFilter.append("            <vlans/>");
         requestFilter.append("          </config>");
         requestFilter.append("        </assignment>");
         requestFilter.append("      </logical-channel-assignments>");
@@ -867,24 +1032,52 @@ public class ClientLineTerminalDeviceFlowRuleProgrammable
 
                 log.debug("fetchClientConnectionsFromDevice {} channel {}", did(), clientPort);
 
-                String linePort = logicalChannels.stream()
-                    .filter(r -> r.getString("config.logical-channel-type").equals(OC_TYPE_PROT_ETH))
-                    .filter(r -> r.getString("config.admin-state").equals(OPERATION_ENABLE))
-                    .filter(r -> r.getString("index").equals(clientPort))
-                    .map(r -> r.getString("logical-channel-assignments.assignment.config.logical-channel"))
-                    .findFirst()
-                    .orElse(null);
+                HierarchicalConfiguration channel = logicalChannels.stream()
+                        .filter(r -> r.getString("config.logical-channel-type").equals(OC_TYPE_PROT_ETH))
+                        .filter(r -> r.getString("config.admin-state").equals(OPERATION_ENABLE))
+                        .filter(r -> r.getString("index").equals(clientPort))
+                        .findAny()
+                        .orElse(null);
 
-                //Build the corresponding flow rule as expected
-                //Selector including port
-                //Treatment including port
-                PortNumber clientPortNumber = PortNumber.portNumber(clientPort);
-                PortNumber linePortNumber = PortNumber.portNumber(linePort);
+                try {
 
-                confirmedRules.addAll(fetchClientConnectionFromDevice(clientPortNumber, linePortNumber));
+                    List<HierarchicalConfiguration> logicalChannelAssignments =
+                            channel.configurationsAt("logical-channel-assignments.assignment");
+
+                    if (!logicalChannelAssignments.isEmpty()) {
+                        for (HierarchicalConfiguration logicalChannelAssignment : logicalChannelAssignments) {
+
+                            String linePort = logicalChannelAssignment.getString("config.logical-channel");
+
+                            PortNumber clientPortNumber = PortNumber.portNumber(clientPort);
+                            PortNumber linePortNumber = PortNumber.portNumber(linePort);
+
+                            List<HierarchicalConfiguration> vlans =
+                                    logicalChannelAssignment.configurationsAt("config.vlans.vlan");
+
+                            if (!vlans.isEmpty()) {
+                                for (HierarchicalConfiguration vlan : vlans) {
+                                    String vlanIdStr = vlan.getString("config.vlan-id");
+                                    VlanId vlanId = VlanId.vlanId(Short.parseShort(vlanIdStr));
+                                    log.error("Client Port: {}, line Port: {}, Vlan-ID: {}",
+                                            clientPort, linePort, vlanIdStr);
+                                    confirmedRules.addAll(fetchClientConnectionFromDevice(clientPortNumber,
+                                            linePortNumber, vlanId));
+                                }
+                            }
+                            else{
+                                log.error("Client Port: {}, line Port: {}", clientPort, linePort);
+                                confirmedRules.addAll(fetchClientConnectionFromDevice(clientPortNumber, linePortNumber));
+                            }
+                        }
+                    }
+                }
+                catch (NullPointerException e){
+                    log.error("NullPointer exception, failed to ");
+                }
+
             }
         }
-
         //Returns rules that are both on the device and on the cache
         if (confirmedRules.size() != 0) {
             log.info("fetchConnectionsFromDevice {} number of confirmed rules {}", did(), confirmedRules.size());
