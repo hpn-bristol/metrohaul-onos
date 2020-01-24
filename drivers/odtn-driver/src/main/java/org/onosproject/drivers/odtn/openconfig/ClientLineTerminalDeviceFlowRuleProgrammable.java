@@ -398,31 +398,31 @@ public class ClientLineTerminalDeviceFlowRuleProgrammable
     }
 
     private void setLogicalChannelAssignment(NetconfSession session, String operation, String client, String line,
-                                             String assignmentIndex, String allocationIndex)
+                                             String allocationIndex)
             throws NetconfException {
         StringBuilder sb = new StringBuilder();
 
-        sb.append("<terminal-device xmlns='http://openconfig.net/yang/terminal-device'>");
-        sb.append("<logical-channels>");
-        sb.append("<channel>");
-        sb.append("<index>" + client + "</index>");
-        sb.append("<config>");
-        sb.append("<admin-state>" + operation + "</admin-state>");
-        sb.append("</config>");
-        sb.append("<logical-channel-assignments>");
-        sb.append("<assignment>");
-        sb.append("<index>" + line + "</index>");
-        sb.append("<config>");
-        sb.append("            <index>" + line + "</index>");
-        sb.append("<logical-channel>" + line + "</logical-channel>");
-        sb.append("<allocation>" + allocationIndex + "</allocation>");
-        sb.append("<assignment-type>LOGICAL_CHANNEL</assignment-type>");
-        sb.append("</config>");
-        sb.append("</assignment>");
-        sb.append("</logical-channel-assignments>");
-        sb.append("</channel>");
-        sb.append("</logical-channels>");
-        sb.append("</terminal-device>");
+        sb.append("<terminal-device xmlns='http://openconfig.net/yang/terminal-device'>"    );
+        sb.append(" <logical-channels>"                                                     );
+        sb.append("     <channel>"                                                          );
+        sb.append("         <index>" + client + "</index>"                                  );
+        sb.append("         <config>"                                                       );
+        sb.append("             <admin-state>" + operation + "</admin-state>"               );
+        sb.append("         </config>"                                                      );
+        sb.append("         <logical-channel-assignments>"                                  );
+        sb.append("             <assignment>"                                               );
+        sb.append("                 <index>" + line + "</index>"                            );
+        sb.append("                 <config>"                                               );
+        sb.append("                     <index>" + line + "</index>"                        );
+        sb.append("                     <logical-channel>" + line + "</logical-channel>"    );
+        sb.append("                     <allocation>" + allocationIndex + "</allocation>"   );
+        sb.append("                     <assignment-type>LOGICAL_CHANNEL</assignment-type>" );
+        sb.append("                 </config>"                                              );
+        sb.append("             </assignment>"                                              );
+        sb.append("         </logical-channel-assignments>"                                 );
+        sb.append("     </channel>"                                                         );
+        sb.append(" </logical-channels>"                                                    );
+        sb.append("</terminal-device>"                                                      );
 
         boolean ok =
                 session.editConfig(DatastoreId.RUNNING, null, sb.toString());
@@ -432,7 +432,7 @@ public class ClientLineTerminalDeviceFlowRuleProgrammable
     }
 
     private void setLogicalChannelAssignment_vlan(NetconfSession session, String operation, String client, String vlanId,
-                                                  String line, String assignmentIndex, String allocationIndex)
+                                                  String line, String allocationIndex)
             throws NetconfException {
 
         StringBuilder sb = new StringBuilder();
@@ -471,6 +471,82 @@ public class ClientLineTerminalDeviceFlowRuleProgrammable
                 session.editConfig(DatastoreId.RUNNING, null, sb.toString());
         if (!ok) {
             throw new NetconfException("error writing logical channel assignment");
+        }
+    }
+
+    private void removeLogicalChannelAssignment(NetconfSession session, String client, String line)
+            throws NetconfException {
+
+        StringBuilder sb = new StringBuilder();
+
+        int numberOfLineAssignment = parseNumberOfLineAssignment(client);
+
+
+        sb.append("<terminal-device xmlns=\"http://openconfig.net/yang/terminal-device\" xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\">");
+        sb.append(" <logical-channels>");
+        sb.append("     <channel>");
+        sb.append("         <index>" + client + "</index>");
+
+        if(numberOfLineAssignment<=1) {
+            sb.append("         <config>");
+            sb.append("             <admin-state>" + OPERATION_DISABLE + "</admin-state>");
+            sb.append("         </config>");
+        }
+
+        sb.append("         <logical-channel-assignments>");
+        sb.append("             <assignment nc:operation=\"delete\">");
+        sb.append("                 <index>" + line + "</index>");
+        sb.append("             </assignment>");
+        sb.append("         </logical-channel-assignments>");
+        sb.append("     </channel>");
+        sb.append(" </logical-channels>");
+        sb.append("</terminal-device>");
+
+        boolean ok =
+                session.editConfig(DatastoreId.RUNNING, null, sb.toString());
+        if (!ok) {
+            throw new NetconfException("error writing logical channel assignment");
+        }
+    }
+
+    private void removeLogicalChannelAssignment_vlan(NetconfSession session, String client, String vlanId,
+                                                  String line)
+            throws NetconfException {
+
+        //Parse if one or more than one VLAN
+
+        if(parseNumberOfVLANs(client, line)>1) {
+            StringBuilder sb = new StringBuilder();
+
+            sb.append("<terminal-device xmlns=\"http://openconfig.net/yang/terminal-device\" xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\">");
+            sb.append("  <logical-channels>");
+            sb.append("    <channel>");
+            sb.append("      <index>" + client + "</index>");
+            sb.append("        <logical-channel-assignments>");
+            sb.append("          <assignment>");
+            sb.append("          <index>" + line + "</index>");
+            sb.append("          <config>");
+            sb.append("            <index>" + line + "</index>");
+            sb.append("            <vlans>");
+            sb.append("              <vlan nc:operation=\"delete\">");
+            sb.append("                <index>" + vlanId + "</index>");
+            sb.append("              </vlan>");
+            sb.append("            </vlans>");
+            sb.append("          </config>");
+            sb.append("          </assignment>");
+            sb.append("        </logical-channel-assignments>");
+            sb.append("    </channel>");
+            sb.append("  </logical-channels>");
+            sb.append("</terminal-device>");
+
+            boolean ok =
+                    session.editConfig(DatastoreId.RUNNING, null, sb.toString());
+            if (!ok) {
+                throw new NetconfException("error writing logical channel assignment");
+            }
+        }
+        else{
+            removeLogicalChannelAssignment(session, client, line);
         }
     }
 
@@ -548,7 +624,7 @@ public class ClientLineTerminalDeviceFlowRuleProgrammable
 
             try {
                 setLogicalChannelAssignment(session, OPERATION_ENABLE, clientPortName, linePortName,
-                        DEFAULT_ASSIGNMENT_INDEX, DEFAULT_ALLOCATION_INDEX);
+                        DEFAULT_ALLOCATION_INDEX);
             } catch (NetconfException e) {
                 log.error("Error setting the logical channel assignment");
                 return false;
@@ -575,7 +651,7 @@ public class ClientLineTerminalDeviceFlowRuleProgrammable
 
             try {
                 setLogicalChannelAssignment_vlan(session, OPERATION_ENABLE, clientPortName, vlanId, linePortName,
-                        DEFAULT_ASSIGNMENT_INDEX, DEFAULT_ALLOCATION_INDEX);
+                        DEFAULT_ALLOCATION_INDEX);
             } catch (NetconfException e) {
                 log.error("Error setting the logical channel assignment");
                 return false;
@@ -629,7 +705,7 @@ public class ClientLineTerminalDeviceFlowRuleProgrammable
 
             try {
                 setLogicalChannelAssignment(session, OPERATION_DISABLE, clientPortName, linePortName,
-                        DEFAULT_ASSIGNMENT_INDEX, DEFAULT_ALLOCATION_INDEX);
+                        DEFAULT_ALLOCATION_INDEX);
             } catch (NetconfException e) {
                 log.error("Error disabling the logical channel assignment");
                 return false;
@@ -655,8 +731,7 @@ public class ClientLineTerminalDeviceFlowRuleProgrammable
                     did(), clientPortName, vlanId, linePortName);
 
             try {
-                setLogicalChannelAssignment_vlan(session, OPERATION_DISABLE, clientPortName, vlanId, linePortName,
-                        DEFAULT_ASSIGNMENT_INDEX, DEFAULT_ALLOCATION_INDEX);
+                removeLogicalChannelAssignment_vlan(session, clientPortName, vlanId, linePortName);
             } catch (NetconfException e) {
                 log.error("Error disabling the logical channel assignment");
                 return false;
@@ -941,46 +1016,11 @@ public class ClientLineTerminalDeviceFlowRuleProgrammable
     private List<FlowRule> fetchConnectionsFromDevice() {
         List<FlowRule> confirmedRules = new ArrayList<>();
         String reply;
-        FlowRule cacheAddRule;
-        FlowRule cacheDropRule;
-        NetconfSession session = getNetconfSession();
 
-        //Get relevant information from the device
-        StringBuilder requestFilter = new StringBuilder();
-        requestFilter.append("<components xmlns='http://openconfig.net/yang/platform'>");
-        requestFilter.append("  <component>");
-        requestFilter.append("    <name/>");
-        requestFilter.append("    <oc-opt-term:optical-channel " +
-                "xmlns:oc-opt-term='http://openconfig.net/yang/terminal-device'>");
-        requestFilter.append("      <oc-opt-term:config/>");
-        requestFilter.append("    </oc-opt-term:optical-channel>");
-        requestFilter.append("  </component>");
-        requestFilter.append("</components>");
-        requestFilter.append("<terminal-device xmlns='http://openconfig.net/yang/terminal-device'>");
-        requestFilter.append("  <logical-channels>");
-        requestFilter.append("    <channel>");
-        requestFilter.append("      <index/>");
-        requestFilter.append("      <config>");
-        requestFilter.append("        <admin-state/>");
-        requestFilter.append("        <logical-channel-type/>");
-        requestFilter.append("      </config>");
-        requestFilter.append("      <logical-channel-assignments>");
-        requestFilter.append("        <assignment>");
-        requestFilter.append("          <config>");
-        requestFilter.append("            <logical-channel/>");
-        requestFilter.append("            <vlans/>");
-        requestFilter.append("          </config>");
-        requestFilter.append("        </assignment>");
-        requestFilter.append("      </logical-channel-assignments>");
-        requestFilter.append("    </channel>");
-        requestFilter.append("  </logical-channels>");
-        requestFilter.append("</terminal-device>");
+        reply = fetchConnectionsFromDevice_rawReply();
 
-        try {
-            reply = session.get(requestFilter.toString(), null);
-            //log.debug("TRANSPONDER CONNECTIONS - fetchConnectionsFromDevice {} reply {}", did(), reply);
-        } catch (NetconfException e) {
-            log.error("Failed to retrieve configuration details for device {}", handler().data().deviceId(), e);
+        if(reply == null) {
+            log.error("Failed to retrieve configuration details for device {}", handler().data().deviceId());
             return ImmutableList.of();
         }
 
@@ -1040,7 +1080,6 @@ public class ClientLineTerminalDeviceFlowRuleProgrammable
                         .orElse(null);
 
                 try {
-
                     List<HierarchicalConfiguration> logicalChannelAssignments =
                             channel.configurationsAt("logical-channel-assignments.assignment");
 
@@ -1059,14 +1098,11 @@ public class ClientLineTerminalDeviceFlowRuleProgrammable
                                 for (HierarchicalConfiguration vlan : vlans) {
                                     String vlanIdStr = vlan.getString("config.vlan-id");
                                     VlanId vlanId = VlanId.vlanId(Short.parseShort(vlanIdStr));
-                                    log.error("Client Port: {}, line Port: {}, Vlan-ID: {}",
-                                            clientPort, linePort, vlanIdStr);
                                     confirmedRules.addAll(fetchClientConnectionFromDevice(clientPortNumber,
                                             linePortNumber, vlanId));
                                 }
                             }
                             else{
-                                log.error("Client Port: {}, line Port: {}", clientPort, linePort);
                                 confirmedRules.addAll(fetchClientConnectionFromDevice(clientPortNumber, linePortNumber));
                             }
                         }
@@ -1075,7 +1111,6 @@ public class ClientLineTerminalDeviceFlowRuleProgrammable
                 catch (NullPointerException e){
                     log.error("NullPointer exception, failed to ");
                 }
-
             }
         }
         //Returns rules that are both on the device and on the cache
@@ -1086,6 +1121,137 @@ public class ClientLineTerminalDeviceFlowRuleProgrammable
             return ImmutableList.of();
         }
     }
+
+    /**
+     * Fetches reply of connections from device in string format.
+     */
+    String fetchConnectionsFromDevice_rawReply() {
+        String reply = null;
+        NetconfSession session = getNetconfSession();
+
+        //Get relevant information from the device
+        StringBuilder requestFilter = new StringBuilder();
+        requestFilter.append("<components xmlns='http://openconfig.net/yang/platform'>");
+        requestFilter.append("  <component>");
+        requestFilter.append("    <name/>");
+        requestFilter.append("    <oc-opt-term:optical-channel " +
+                "xmlns:oc-opt-term='http://openconfig.net/yang/terminal-device'>");
+        requestFilter.append("      <oc-opt-term:config/>");
+        requestFilter.append("    </oc-opt-term:optical-channel>");
+        requestFilter.append("  </component>");
+        requestFilter.append("</components>");
+        requestFilter.append("<terminal-device xmlns='http://openconfig.net/yang/terminal-device'>");
+        requestFilter.append("  <logical-channels>");
+        requestFilter.append("    <channel>");
+        requestFilter.append("      <index/>");
+        requestFilter.append("      <config>");
+        requestFilter.append("        <admin-state/>");
+        requestFilter.append("        <logical-channel-type/>");
+        requestFilter.append("      </config>");
+        requestFilter.append("      <logical-channel-assignments>");
+        requestFilter.append("        <assignment>");
+        requestFilter.append("          <config>");
+        requestFilter.append("            <logical-channel/>");
+        requestFilter.append("            <vlans/>");
+        requestFilter.append("          </config>");
+        requestFilter.append("        </assignment>");
+        requestFilter.append("      </logical-channel-assignments>");
+        requestFilter.append("    </channel>");
+        requestFilter.append("  </logical-channels>");
+        requestFilter.append("</terminal-device>");
+
+        try {
+            reply = session.get(requestFilter.toString(), null);
+            //log.debug("TRANSPONDER CONNECTIONS - fetchConnectionsFromDevice {} reply {}", did(), reply);
+        }
+        catch (NetconfException e) {
+            log.error("Failed to retrieve configuration details for device {}", handler().data().deviceId(), e);
+        }
+        return reply;
+    }
+
+    /**
+     * Parses number of vlans in Logical channel assignment.
+     */
+    int parseNumberOfVLANs(String client, String line){
+
+        String reply = fetchConnectionsFromDevice_rawReply();
+
+        if(reply == null) {
+            log.error("Failed to retrieve configuration details for device {}", handler().data().deviceId());
+            return 0;
+        }
+
+        HierarchicalConfiguration cfg = XmlConfigParser.loadXml(new ByteArrayInputStream(reply.getBytes()));
+
+        List<HierarchicalConfiguration> logicalChannels =
+                cfg.configurationsAt("data.terminal-device.logical-channels.channel");
+
+        HierarchicalConfiguration clientChannel = logicalChannels.stream()
+                .filter(r -> r.getString("config.logical-channel-type").equals(OC_TYPE_PROT_ETH))
+                .filter(r -> r.getString("config.admin-state").equals(OPERATION_ENABLE))
+                .filter(r -> r.getString("index").equals(client))
+                .findAny()
+                .orElse(null);
+
+        try {
+            List<HierarchicalConfiguration> logicalChannelAssignments =
+                    clientChannel.configurationsAt("logical-channel-assignments.assignment");
+
+            if (!logicalChannelAssignments.isEmpty()) {
+                for (HierarchicalConfiguration logicalChannelAssignment : logicalChannelAssignments) {
+
+                    String linePort = logicalChannelAssignment.getString("config.logical-channel");
+
+                    if (linePort.equals(line)){
+                        return logicalChannelAssignment.configurationsAt("config.vlans.vlan").size();
+                    }
+                }
+            }
+        }
+        catch (NullPointerException e){
+            log.error("NullPointer exception, failed to ");
+        }
+
+        return 0;
+
+    }
+
+    int parseNumberOfLineAssignment(String client){
+
+        String reply = fetchConnectionsFromDevice_rawReply();
+
+        if(reply == null) {
+            log.error("Failed to retrieve configuration details for device {}", handler().data().deviceId());
+            return 0;
+        }
+
+        HierarchicalConfiguration cfg = XmlConfigParser.loadXml(new ByteArrayInputStream(reply.getBytes()));
+
+        List<HierarchicalConfiguration> logicalChannels =
+                cfg.configurationsAt("data.terminal-device.logical-channels.channel");
+
+        HierarchicalConfiguration clientChannel = logicalChannels.stream()
+                .filter(r -> r.getString("config.logical-channel-type").equals(OC_TYPE_PROT_ETH))
+                .filter(r -> r.getString("config.admin-state").equals(OPERATION_ENABLE))
+                .filter(r -> r.getString("index").equals(client))
+                .findAny()
+                .orElse(null);
+
+        try {
+            List<HierarchicalConfiguration> logicalChannelAssignments =
+                    clientChannel.configurationsAt("logical-channel-assignments.assignment");
+            if (!logicalChannelAssignments.isEmpty()) {
+                return logicalChannelAssignments.size();
+            }
+        }
+        catch (NullPointerException e){
+            log.error("NullPointer exception, failed to ");
+        }
+
+        return 0;
+    }
+
 
     /**
      * Convert start and end frequencies to OCh signal.
