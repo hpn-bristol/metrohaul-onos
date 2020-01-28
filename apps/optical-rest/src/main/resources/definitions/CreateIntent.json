@@ -125,6 +125,10 @@
           }
         }
       }
+    },
+    "vlanId": {
+      "type": "string",
+      "example": "100"
     }
   }
 }

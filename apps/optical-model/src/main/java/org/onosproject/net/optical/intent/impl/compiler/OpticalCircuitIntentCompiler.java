@@ -19,6 +19,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.tuple.Pair;
+import org.onlab.packet.VlanId;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
@@ -130,7 +131,8 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
     //Priority value of created OpticalConnectivity intent rules.
     //The OpticalCircuitIntent is created with DEFAULT_INTENT_PRIORITY = 100 (see Intent.java)
     //The two values have to be different to avoid rules overwriting.
-    private static final int OPTICAL_CONNECTIVITY_INTENT_PRIORITY = 200;
+    private static final int OPTICAL_CONNECTIVITY_INTENT_PRIORITY = 100;
+    private static final int OPTICAL_CIRCUIT_INTENT_PRIORITY = 200;
 
     @Modified
     public void modified(ComponentContext context) {
@@ -327,17 +329,21 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         List<FlowRule> rules = new LinkedList<>();
         // at the source: ODUCLT port mapping to OCH port
         log.debug("OpticalCircuitIntent creating FlowRules");
-        rules.add(connectPorts(higherIntent.getSrc(), lowerIntent.getSrc(), higherIntent.priority(), slots));
+        rules.add(connectPorts(higherIntent.getSrc(), lowerIntent.getSrc(),
+                OPTICAL_CIRCUIT_INTENT_PRIORITY, higherIntent.getVlanId(), slots));
         // at the destination: OCH port mapping to ODUCLT port
-        rules.add(connectPorts(lowerIntent.getDst(), higherIntent.getDst(), higherIntent.priority(), slots));
+        rules.add(connectPorts(lowerIntent.getDst(), higherIntent.getDst(),
+                OPTICAL_CIRCUIT_INTENT_PRIORITY, higherIntent.getVlanId(), slots));
 
         // Create flow rules for reverse path
         if (higherIntent.isBidirectional()) {
             log.debug("OpticalCircuitIntent creating FlowRules for reverse path");
            // at the destination: OCH port mapping to ODUCLT port
-            rules.add(connectPorts(lowerIntent.getSrc(), higherIntent.getSrc(), higherIntent.priority(), slots));
+            rules.add(connectPorts(lowerIntent.getSrc(), higherIntent.getSrc(),
+                    OPTICAL_CIRCUIT_INTENT_PRIORITY, higherIntent.getVlanId(), slots));
             // at the source: ODUCLT port mapping to OCH port
-            rules.add(connectPorts(higherIntent.getDst(), lowerIntent.getDst(), higherIntent.priority(), slots));
+            rules.add(connectPorts(higherIntent.getDst(), lowerIntent.getDst(),
+                    OPTICAL_CIRCUIT_INTENT_PRIORITY, higherIntent.getVlanId(), slots));
         }
 
         return new FlowRuleIntent(appId, higherIntent.key(), rules,
@@ -511,13 +517,15 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
      * @param slots Set of TributarySlots
      * @return flow rules
      */
-    private FlowRule connectPorts(ConnectPoint src, ConnectPoint dst, int priority, Set<TributarySlot> slots) {
+    private FlowRule connectPorts(ConnectPoint src, ConnectPoint dst, int priority, VlanId vlanId, Set<TributarySlot> slots) {
         checkArgument(src.deviceId().equals(dst.deviceId()));
 
         TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment.builder();
 
         selectorBuilder.matchInPort(src.port());
+        selectorBuilder.matchVlanId(vlanId);
+
         if (!slots.isEmpty()) {
             Port srcPort = deviceService.getPort(src.deviceId(), src.port());
             Port dstPort = deviceService.getPort(dst.deviceId(), dst.port());

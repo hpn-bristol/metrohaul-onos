@@ -17,6 +17,7 @@ package org.onosproject.net.intent;
 
 import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
+import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.CltSignalType;
 import org.onosproject.net.ConnectPoint;
@@ -36,6 +37,7 @@ public class OpticalCircuitIntent extends Intent {
     private final ConnectPoint dst;
     private final CltSignalType signalType;
     private final boolean isBidirectional;
+    private final VlanId vlanId;
 
     /**
      * Creates an optical circuit intent between the specified
@@ -51,13 +53,14 @@ public class OpticalCircuitIntent extends Intent {
      * @param resourceGroup resource group for this intent
      */
     protected OpticalCircuitIntent(ApplicationId appId, Key key, ConnectPoint src, ConnectPoint dst,
-                                   CltSignalType signalType, boolean isBidirectional, int priority,
+                                   CltSignalType signalType, boolean isBidirectional, VlanId vlanId, int priority,
                                    ResourceGroup resourceGroup) {
         super(appId, key, Collections.emptyList(), priority, resourceGroup);
         this.src = checkNotNull(src);
         this.dst = checkNotNull(dst);
         this.signalType = checkNotNull(signalType);
         this.isBidirectional = isBidirectional;
+        this.vlanId = vlanId;
     }
 
     /**
@@ -78,6 +81,7 @@ public class OpticalCircuitIntent extends Intent {
         private ConnectPoint dst;
         private CltSignalType signalType;
         private boolean isBidirectional;
+        private VlanId vlanId;
 
         @Override
         public Builder appId(ApplicationId appId) {
@@ -143,6 +147,11 @@ public class OpticalCircuitIntent extends Intent {
             return this;
         }
 
+        public Builder vlanId(VlanId vlanId) {
+            this.vlanId = vlanId;
+            return this;
+        }
+
         /**
          * Builds an optical circuit intent from the accumulated parameters.
          *
@@ -157,6 +166,7 @@ public class OpticalCircuitIntent extends Intent {
                     dst,
                     signalType,
                     isBidirectional,
+                    vlanId,
                     priority,
                     resourceGroup
             );
@@ -172,6 +182,7 @@ public class OpticalCircuitIntent extends Intent {
         this.dst = null;
         this.signalType = null;
         this.isBidirectional = false;
+        this.vlanId = null;
     }
 
     /**
@@ -210,6 +221,10 @@ public class OpticalCircuitIntent extends Intent {
         return isBidirectional;
     }
 
+    public VlanId getVlanId() {
+        return vlanId;
+    }
+
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
@@ -222,6 +237,7 @@ public class OpticalCircuitIntent extends Intent {
                 .add("dst", dst)
                 .add("signalType", signalType)
                 .add("isBidirectional", isBidirectional)
+                .add("vlanId", vlanId)
                 .add("resourceGroup", resourceGroup())
                 .toString();
     }
