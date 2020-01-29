@@ -20,8 +20,10 @@ package org.onosproject.drivers.odtn.openconfig;
 
 import org.onlab.packet.VlanId;
 import org.onosproject.net.OchSignal;
+import org.onosproject.net.OchSignalType;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultFlowRule;
+import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.criteria.*;
 import org.onosproject.net.flow.instructions.Instruction;
@@ -235,6 +237,9 @@ public class TerminalDeviceFlowRule extends DefaultFlowRule {
             if (linePorts.contains(outPortNumber)) {
                 type = Type.CLIENT_INGRESS_VLAN;
             }
+            else{
+                type = Type.CLIENT_EGRESS_VLAN;
+            }
         }
 
         if (type == Type.LINE_EGRESS) {
@@ -255,6 +260,10 @@ public class TerminalDeviceFlowRule extends DefaultFlowRule {
         }
         if (type == Type.CLIENT_INGRESS_VLAN) {
             connectionName = "ClientIngress-VLAN-" + vlanId.toString() +  "-ClientPort-" + inPortNumber.toString()
+                    + "-LinePort-" + outPortNumber.toString();
+        }
+        if (type == Type.CLIENT_EGRESS_VLAN) {
+            connectionName = "ClientEgress-VLAN-" + vlanId.toString() +  "-ClientPort-" + inPortNumber.toString()
                     + "-LinePort-" + outPortNumber.toString();
         }
         log.info("TerminalFlowRule built with name {}", connectionName);

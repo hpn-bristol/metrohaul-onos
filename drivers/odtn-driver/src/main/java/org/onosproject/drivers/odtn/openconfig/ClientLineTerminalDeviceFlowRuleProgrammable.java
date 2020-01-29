@@ -44,6 +44,8 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.FlowRuleProgrammable;
 import org.onosproject.net.flow.criteria.Criteria;
+import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.netconf.DatastoreId;
 import org.onosproject.netconf.NetconfController;
@@ -121,6 +123,7 @@ public class ClientLineTerminalDeviceFlowRuleProgrammable
 
         for (FlowRule flowRule : added) {
             log.info("OpenConfig added flowrule {}", flowRule);
+
             getConnectionCache().add(did(), ((TerminalDeviceFlowRule) flowRule).connectionName(), flowRule);
         }
 
@@ -636,14 +639,21 @@ public class ClientLineTerminalDeviceFlowRuleProgrammable
         //--- enable the client port
         //
 
-        if (rule.type == TerminalDeviceFlowRule.Type.CLIENT_INGRESS_VLAN){
+        if (rule.type == TerminalDeviceFlowRule.Type.CLIENT_INGRESS_VLAN ||
+                rule.type == TerminalDeviceFlowRule.Type.CLIENT_EGRESS_VLAN){
 
             String clientPortName;
             String linePortName;
             String vlanId;
 
-            clientPortName = rule.inPort().toString();
-            linePortName = rule.outPort().toString();
+            if (rule.type == TerminalDeviceFlowRule.Type.CLIENT_INGRESS_VLAN) {
+                clientPortName = rule.inPort().toString();
+                linePortName = rule.outPort().toString();
+            } else {
+                clientPortName = rule.outPort().toString();
+                linePortName = rule.inPort().toString();
+            }
+
             vlanId = rule.vlanId().toString();
 
             log.info("Sending CLIENT FlowRule to device {} CLIENT port: {}, Vlan ID: {}, LINE port {}",
@@ -714,17 +724,23 @@ public class ClientLineTerminalDeviceFlowRuleProgrammable
 
         //Configuration of CLIENT side + VLAN, used for OpticalCircuit intents
         //--- associate the client port as well as VLAN to the line port
-        //--- enable the client port
-        //
+        //--- disable the client port
 
-        if (rule.type == TerminalDeviceFlowRule.Type.CLIENT_INGRESS_VLAN){
+        if (rule.type == TerminalDeviceFlowRule.Type.CLIENT_INGRESS_VLAN ||
+                rule.type == TerminalDeviceFlowRule.Type.CLIENT_EGRESS_VLAN){
 
             String clientPortName;
             String linePortName;
             String vlanId;
 
-            clientPortName = rule.inPort().toString();
-            linePortName = rule.outPort().toString();
+            if (rule.type == TerminalDeviceFlowRule.Type.CLIENT_INGRESS_VLAN) {
+                clientPortName = rule.inPort().toString();
+                linePortName = rule.outPort().toString();
+            } else {
+                clientPortName = rule.outPort().toString();
+                linePortName = rule.inPort().toString();
+            }
+
             vlanId = rule.vlanId().toString();
 
             log.info("Removing CLIENT FlowRule device {} CLIENT port: {}, Vlan ID: {}, LINE port {}",
@@ -944,60 +960,96 @@ public class ClientLineTerminalDeviceFlowRuleProgrammable
     private List<FlowRule> fetchClientConnectionFromDevice(PortNumber clientPortNumber, PortNumber linePortNumber,
                                                            VlanId vlanId) {
         List<FlowRule> confirmedRules = new ArrayList<>();
-        FlowRule cacheRule;
+        FlowRule cacheAddRule;
+        FlowRule cacheDropRule;
         NetconfSession session = getNetconfSession();
 
         //Build the corresponding flow rule as expected
-        //Selector including port & VLAN
+        //Selector including port
         //Treatment including port
 
-        log.debug("fetchClientConnectionsFromDevice {} client {} line {} vlan {}",
-                did(), clientPortNumber, linePortNumber, vlanId);
+        log.debug("fetchClientConnectionsFromDevice {} client {} line {} vlan {}}", did(), clientPortNumber, linePortNumber,
+                vlanId);
 
-        TrafficSelector selector = DefaultTrafficSelector.builder()
+        TrafficSelector selectorDrop = DefaultTrafficSelector.builder()
+                .matchInPort(linePortNumber)
+                .matchVlanId(vlanId)
+                .build();
+
+        TrafficTreatment treatmentDrop = DefaultTrafficTreatment.builder()
+                .setOutput(clientPortNumber)
+                .build();
+
+        TrafficSelector selectorAdd = DefaultTrafficSelector.builder()
                 .matchInPort(clientPortNumber)
                 .matchVlanId(vlanId)
                 .build();
 
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+        TrafficTreatment treatmentAdd = DefaultTrafficTreatment.builder()
                 .setOutput(linePortNumber)
                 .build();
 
         //Retrieved rules and cached rules are considered equal if both selector and treatment are equal
-        cacheRule = null;
-
+        cacheAddRule = null;
+        cacheDropRule = null;
         if (getConnectionCache().size(did()) != 0) {
-            cacheRule = getConnectionCache().get(did()).stream()
-                    .filter(r -> (r.selector().equals(selector) && r.treatment().equals(treatment)))
+            cacheDropRule = getConnectionCache().get(did()).stream()
+                    .filter(r -> (r.selector().equals(selectorDrop) && r.treatment().equals(treatmentDrop)))
+                    .findFirst()
+                    .orElse(null);
+
+            cacheAddRule = getConnectionCache().get(did()).stream()
+                    .filter(r -> (r.selector().equals(selectorAdd) && r.treatment().equals(treatmentAdd)))
                     .findFirst()
                     .orElse(null);
         }
 
-        //Include the rule to the retrieved rules if found in cache
-        if ((cacheRule != null)) {
-            confirmedRules.add(cacheRule);
-            log.debug("fetchClientConnectionsFromDevice {} CLIENT rule in the cache {}",
-                    did(), cacheRule);
+        //Include the DROP rule to the retrieved rules if found in cache
+        if ((cacheDropRule != null)) {
+            confirmedRules.add(cacheDropRule);
+            log.debug("fetchClientConnectionsFromDevice {} DROP CLIENT rule in the cache {}",
+                    did(), cacheDropRule);
+        } else {
+            log.warn("fetchClientConnectionsFromDevice {} DROP CLIENT rule not found in cache", did());
+        }
+
+        //Include the ADD rule to the retrieved rules if found in cache
+        if ((cacheAddRule != null)) {
+            confirmedRules.add(cacheAddRule);
+            log.debug("fetchClientConnectionsFromDevice {} ADD CLIENT rule in the cache {}",
+                    did(), cacheAddRule);
         } else {
             log.warn("fetchClientConnectionsFromDevice {} ADD CLIENT rule not found in cache", did());
         }
 
-        if (cacheRule == null) {
-            log.warn("fetchClientConnectionsFromDevice {} rule not included in the cache", did());
+        if ((cacheDropRule == null) && (cacheAddRule == null)) {
+            log.warn("fetchClientConnectionsFromDevice {} ADD and DROP rule not included in the cache", did());
 
-            FlowRule deviceRule = DefaultFlowRule.builder()
+            FlowRule deviceDropRule = DefaultFlowRule.builder()
                     .forDevice(data().deviceId())
                     .makePermanent()
-                    .withSelector(selector)
-                    .withTreatment(treatment)
+                    .withSelector(selectorDrop)
+                    .withTreatment(treatmentDrop)
+                    .withCookie(DEFAULT_RULE_COOKIE)
+                    .withPriority(DEFAULT_RULE_PRIORITY)
+                    .build();
+
+            FlowRule deviceAddRule = DefaultFlowRule.builder()
+                    .forDevice(data().deviceId())
+                    .makePermanent()
+                    .withSelector(selectorAdd)
+                    .withTreatment(treatmentAdd)
                     .withCookie(DEFAULT_RULE_COOKIE)
                     .withPriority(DEFAULT_RULE_PRIORITY)
                     .build();
 
             try {
                 //TODO this is not required if allowExternalFlowRules
-                TerminalDeviceFlowRule addRule = new TerminalDeviceFlowRule(deviceRule, getLinePorts());
+                TerminalDeviceFlowRule addRule = new TerminalDeviceFlowRule(deviceAddRule, getLinePorts());
                 removeFlowRule(session, addRule);
+
+                TerminalDeviceFlowRule dropRule = new TerminalDeviceFlowRule(deviceDropRule, getLinePorts());
+                removeFlowRule(session, dropRule);
             } catch (NetconfException e) {
                 openConfigError("Error removing CLIENT rule from device", e);
             }
