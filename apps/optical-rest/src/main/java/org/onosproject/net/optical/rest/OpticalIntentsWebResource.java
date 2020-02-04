@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.graph.ScalarWeight;
+import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.Device;
@@ -68,6 +69,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.onosproject.net.optical.util.OpticalIntentUtility.createExplicitOpticalIntent;
+import static org.onosproject.net.optical.util.OpticalIntentUtility.createExplicitOpticalIntentVlan;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import static org.onlab.util.Tools.readTreeFromStream;
@@ -88,6 +90,7 @@ public class OpticalIntentsWebResource extends AbstractWebResource {
     private static final String BIDIRECTIONAL = "bidirectional";
     private static final String SIGNAL = "signal";
     private static final String SUGGESTEDPATH = "suggestedPath";
+    private static final String VLAN_ID = "vlanId";
     private static final String MISSING_MEMBER_MESSAGE = " member is required";
     private static final String E_APP_ID_NOT_FOUND = "Application ID is not found";
     private static final ProviderId PROVIDER_ID = new ProviderId("netconf", "optical-rest");
@@ -281,6 +284,14 @@ public class OpticalIntentsWebResource extends AbstractWebResource {
             }
         }
 
+        JsonNode vlanJson = json.get(VLAN_ID);
+        VlanId vlanId = null;
+        if (vlanJson != null) {
+            vlanId = VlanId.vlanId(vlanJson.asText());
+
+            log.warn("This intent is associated to VLAN {}", vlanId);
+        }
+
         String appIdString = nullIsIllegal(json.get(APP_ID), APP_ID + MISSING_MEMBER_MESSAGE).asText();
         CoreService service = getService(CoreService.class);
         ApplicationId appId = nullIsNotFound(service.getAppId(appIdString), E_APP_ID_NOT_FOUND);
@@ -336,8 +347,8 @@ public class OpticalIntentsWebResource extends AbstractWebResource {
             }
         }
 
-        return createExplicitOpticalIntent(
-                ingress, egress, deviceService, key, appId, bidirectional, signal, suggestedPath);
+        return createExplicitOpticalIntentVlan(
+                ingress, egress, deviceService, key, appId, bidirectional, signal, suggestedPath, vlanId);
     }
 
     private boolean isPathContiguous(List<Link> path) {

@@ -16,6 +16,7 @@
 
 package org.onosproject.net.optical.util;
 
+import org.onlab.packet.VlanId;
 import org.onosproject.net.optical.OduCltPort;
 
 import org.onosproject.core.ApplicationId;
@@ -186,6 +187,7 @@ public final class OpticalIntentUtility {
                         .key(key)
                         .src(ingress)
                         .dst(egress)
+                        .priority(200)
                         .signalType(signalType)
                         .bidirectional(bidirectional)
                         .build();
@@ -210,6 +212,84 @@ public final class OpticalIntentUtility {
                     .key(key)
                     .src(ingress)
                     .dst(egress)
+                    .priority(100)
+                    .signalType(signalType)
+                    .bidirectional(bidirectional)
+                    .ochSignal(signal)
+                    .suggestedPath(path)
+                    .build();
+        } else {
+            log.error("Unable to create explicit optical intent between connect points {} and {}", ingress, egress);
+        }
+
+        return intent;
+    }
+
+    public static Intent createExplicitOpticalIntentVlan(ConnectPoint ingress, ConnectPoint
+            egress, DeviceService deviceService, Key key, ApplicationId appId, boolean bidirectional,
+                                                         OchSignal signal, Path path, VlanId vlanId) {
+
+        //VLAN parameter is only used for OpticalCircuitIntent
+
+        Intent intent = null;
+
+        if (ingress == null || egress == null) {
+            log.error("Invalid endpoint(s); could not create optical intent");
+            return intent;
+        }
+
+        DeviceService ds = opticalView(deviceService);
+
+        Port srcPort = ds.getPort(ingress.deviceId(), ingress.port());
+        Port dstPort = ds.getPort(egress.deviceId(), egress.port());
+
+        if (srcPort instanceof OduCltPort && dstPort instanceof OduCltPort) {
+            Device srcDevice = ds.getDevice(ingress.deviceId());
+            Device dstDevice = ds.getDevice(egress.deviceId());
+
+            // continue only if both OduClt port's Devices are of the same type
+            if (!(srcDevice.type().equals(dstDevice.type()))) {
+                log.debug("Devices without same deviceType: SRC={} and DST={}", srcDevice.type(), dstDevice.type());
+                return intent;
+            }
+
+            CltSignalType signalType = ((OduCltPort) srcPort).signalType();
+            if (Type.ROADM.equals(srcDevice.type()) ||
+                    Type.ROADM_OTN.equals(srcDevice.type()) ||
+                    Type.OLS.equals(srcDevice.type()) ||
+                    Type.TERMINAL_DEVICE.equals(srcDevice.type())) {
+                intent = OpticalCircuitIntent.builder()
+                        .appId(appId)
+                        .key(key)
+                        .src(ingress)
+                        .dst(egress)
+                        .priority(200)
+                        .signalType(signalType)
+                        .bidirectional(bidirectional)
+                        .vlanId(vlanId)
+                        .build();
+            } else if (Type.OTN.equals(srcDevice.type())) {
+                intent = OpticalOduIntent.builder()
+                        .appId(appId)
+                        .key(key)
+                        .src(ingress)
+                        .dst(egress)
+                        .signalType(signalType)
+                        .bidirectional(bidirectional)
+                        .build();
+            } else {
+                log.error("Wrong Device Type for connect points: " +
+                                "ingress {} of type {}; egress {} of type {}",
+                        ingress, srcDevice.type(), egress, dstDevice.type());
+            }
+        } else if (srcPort instanceof OchPort && dstPort instanceof OchPort) {
+            OduSignalType signalType = ((OchPort) srcPort).signalType();
+            intent = OpticalConnectivityIntent.builder()
+                    .appId(appId)
+                    .key(key)
+                    .src(ingress)
+                    .dst(egress)
+                    .priority(100)
                     .signalType(signalType)
                     .bidirectional(bidirectional)
                     .ochSignal(signal)
