@@ -484,7 +484,6 @@ public class ClientLineTerminalDeviceFlowRuleProgrammable
 
         int numberOfLineAssignment = parseNumberOfLineAssignment(client);
 
-
         sb.append("<terminal-device xmlns=\"http://openconfig.net/yang/terminal-device\" xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\">");
         sb.append(" <logical-channels>");
         sb.append("     <channel>");
@@ -518,37 +517,38 @@ public class ClientLineTerminalDeviceFlowRuleProgrammable
 
         //Parse if one or more than one VLAN
 
-        if(parseNumberOfVLANs(client, line)>1) {
-            StringBuilder sb = new StringBuilder();
+        int numVlansBeforeDelete = parseNumberOfVLANs(client, line);
 
-            sb.append("<terminal-device xmlns=\"http://openconfig.net/yang/terminal-device\" xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\">");
-            sb.append("  <logical-channels>");
-            sb.append("    <channel>");
-            sb.append("      <index>" + client + "</index>");
-            sb.append("        <logical-channel-assignments>");
-            sb.append("          <assignment>");
-            sb.append("          <index>" + line + "</index>");
-            sb.append("          <config>");
-            sb.append("            <index>" + line + "</index>");
-            sb.append("            <vlans>");
-            sb.append("              <vlan nc:operation=\"delete\">");
-            sb.append("                <index>" + vlanId + "</index>");
-            sb.append("              </vlan>");
-            sb.append("            </vlans>");
-            sb.append("          </config>");
-            sb.append("          </assignment>");
-            sb.append("        </logical-channel-assignments>");
-            sb.append("    </channel>");
-            sb.append("  </logical-channels>");
-            sb.append("</terminal-device>");
+        StringBuilder sb = new StringBuilder();
 
-            boolean ok =
-                    session.editConfig(DatastoreId.RUNNING, null, sb.toString());
-            if (!ok) {
-                throw new NetconfException("error writing logical channel assignment");
-            }
+        sb.append("<terminal-device xmlns=\"http://openconfig.net/yang/terminal-device\" xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\">");
+        sb.append("  <logical-channels>");
+        sb.append("    <channel>");
+        sb.append("      <index>" + client + "</index>");
+        sb.append("        <logical-channel-assignments>");
+        sb.append("          <assignment>");
+        sb.append("          <index>" + line + "</index>");
+        sb.append("          <config>");
+        sb.append("            <index>" + line + "</index>");
+        sb.append("            <vlans>");
+        sb.append("              <vlan nc:operation=\"delete\">");
+        sb.append("                <index>" + vlanId + "</index>");
+        sb.append("              </vlan>");
+        sb.append("            </vlans>");
+        sb.append("          </config>");
+        sb.append("          </assignment>");
+        sb.append("        </logical-channel-assignments>");
+        sb.append("    </channel>");
+        sb.append("  </logical-channels>");
+        sb.append("</terminal-device>");
+
+        boolean ok =
+                session.editConfig(DatastoreId.RUNNING, null, sb.toString());
+        if (!ok) {
+            throw new NetconfException("error writing logical channel assignment");
         }
-        else{
+
+        if(numVlansBeforeDelete<=1) {
             removeLogicalChannelAssignment(session, client, line);
         }
     }
