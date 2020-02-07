@@ -1,0 +1,26 @@
+<terminal-device xmlns='http://openconfig.net/yang/terminal-device'>
+  <logical-channels>
+    <channel>
+      <index>1101</index>
+      <logical-channel-assignments>
+        <assignment>
+        <index>1107</index>
+        <config>
+          <index>1107</index>
+          <logical-channel>1107</logical-channel>
+          <allocation>10</allocation>
+          <assignment-type>LOGICAL_CHANNEL</assignment-type>
+          <vlans>
+            <vlan>
+              <index>100</index>
+              <config>
+                <vlan-id>100</vlan-id>
+              </config>
+            </vlan>
+          </vlans>
+        </config>
+        </assignment>
+      </logical-channel-assignments>
+    </channel>
+  </logical-channels>
+</terminal-device>

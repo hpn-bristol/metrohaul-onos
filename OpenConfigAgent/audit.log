@@ -1,0 +1,11 @@
+<INFO> 7-Feb-2020::16:48:10.157 onos-metrohaul-5gpicture confd[30313]: audit user: admin/28 assigned to groups: admin
+<INFO> 7-Feb-2020::16:48:10.630 onos-metrohaul-5gpicture confd[30313]: audit user: admin/0 login failed via netconf from 10.9.10.3:55005 with ssh: Couldn't read "/var/confd/homes/admin/.ssh/authorized_keys2": "no such file or directory"
+<INFO> 7-Feb-2020::16:48:10.644 onos-metrohaul-5gpicture confd[30313]: audit user: admin/0 local authentication succeeded via netconf from 10.9.10.3:55005 with ssh, member of groups: admin
+<INFO> 7-Feb-2020::16:48:10.644 onos-metrohaul-5gpicture confd[30313]: audit user: admin/0 logged in via netconf from 10.9.10.3:55005 with ssh using local authentication
+<INFO> 7-Feb-2020::16:48:10.657 onos-metrohaul-5gpicture confd[30313]: audit user: admin/29 assigned to groups: admin
+<INFO> 7-Feb-2020::16:48:10.722 onos-metrohaul-5gpicture confd[30313]: audit user: admin/0 logged out <local> user
+<INFO> 7-Feb-2020::16:58:23.879 onos-metrohaul-5gpicture confd[30313]: audit user: admin/0 login failed via netconf from 10.9.10.3:55203 with ssh: Couldn't read "/var/confd/homes/admin/.ssh/authorized_keys2": "no such file or directory"
+<INFO> 7-Feb-2020::16:58:23.892 onos-metrohaul-5gpicture confd[30313]: audit user: admin/0 local authentication succeeded via netconf from 10.9.10.3:55203 with ssh, member of groups: admin
+<INFO> 7-Feb-2020::16:58:23.893 onos-metrohaul-5gpicture confd[30313]: audit user: admin/0 logged in via netconf from 10.9.10.3:55203 with ssh using local authentication
+<INFO> 7-Feb-2020::16:58:23.922 onos-metrohaul-5gpicture confd[30313]: audit user: admin/30 assigned to groups: admin
+<INFO> 7-Feb-2020::17:15:07.887 onos-metrohaul-5gpicture confd[30313]: audit user: admin/0 logged out <local> user

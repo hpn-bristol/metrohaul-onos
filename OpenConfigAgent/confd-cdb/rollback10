@@ -1,0 +1,17 @@
+# Created by: admin
+# Date: 2020-02-07 17:03:46
+# Via: maapi
+# Type: delta
+# Label: 
+# Comment: 
+# No: 10004
+
+components {
+    component channel-1201 {
+        optical-channel {
+            state {
+                frequency 190000000;
+            }
+         }
+     }
+ }
