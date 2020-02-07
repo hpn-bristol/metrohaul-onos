@@ -19,6 +19,8 @@
 
 #define CLIENT_SIDE 1
 #define LINE_SIDE 2
+#define POWER_UP 0.0
+#define POWER_DOWN -35.0
 
 double convertFrequencyStrToDouble(char const* const str_val) {
     long long_val = 0;
@@ -171,8 +173,11 @@ void sendCommandVoyager(char* cmd) {
 char* voyagerSetChannelState(uint32_t lch_id, char const* const val) {
     // check if it is line port or client port
     int side = getSideFromId(lch_id);
-    char* interface = NULL;
-    char* cmd = malloc(50*sizeof(char));
+    char* interface_1 = NULL;
+    char* interface_2 = NULL;
+    char* cmd = malloc(100*sizeof(char));
+    char* cmd_1 = malloc(50*sizeof(char));
+    char* cmd_2 = malloc(50*sizeof(char));
 
     if (side == -1) {
         sprintf(cmd, "-1");
@@ -186,21 +191,25 @@ char* voyagerSetChannelState(uint32_t lch_id, char const* const val) {
            Yes, 'del' and 'add' are correct, you add a link down status to an interface.
         */
         case CLIENT_SIDE: {
-            interface = mapIndexToInterface(lch_id);
-            if (strcmp(interface,"-1") == 0) {
+            interface_1 = mapIndexToInterface(lch_id);
+            if (strcmp(interface_1,"-1") == 0) {
                 sprintf(cmd, "-1");
                 break;
             }
             if (strcmp(val,"DISABLE") == 0) {
-                sprintf(cmd, "add interface %s link down", interface);
+                sprintf(cmd, "add interface %s link down", interface_1);
             }
             else if (strcmp(val,"ENABLE") == 0) {
-                sprintf(cmd, "del interface %s link down", interface);
+                sprintf(cmd, "del interface %s link down", interface_1);
             } else {
                 sprintf(cmd, "-1");
                 // fprintf(stderr, "Bad Admin-State received (%s).", val);
                 // perror("voyagerSetChannelState: Bad value.");
             }
+
+    	    sendCommandVoyager(cmd);
+    	    sleep(1);
+    	    sendCommandVoyager("commit");
         }
         break;
         /* Handling Voyager's optical interfaces:
@@ -209,29 +218,39 @@ char* voyagerSetChannelState(uint32_t lch_id, char const* const val) {
            Yes, 'del' and 'add' are correct, you add a link down status to an interface.
         */
         case LINE_SIDE: {
-            interface = mapIndexToTransponder(lch_id);
-            if (strcmp(interface,"-1") == 0) {
+            interface_1 = mapIndexToTransponder(lch_id);
+            interface_2 = mapIndexToInterface(lch_id);
+            if ( (strcmp(interface_1,"-1") == 0) || (strcmp(interface_2,"-1") == 0) ) {
                 sprintf(cmd, "-1");
                 break;
             }
             if (strcmp(val,"DISABLE") == 0) {
-                sprintf(cmd, "add interface %s state tx-off", interface);
+                sprintf(cmd_2, "add interface %s link down", interface_2);
+                sprintf(cmd_1, "add interface %s power %f", interface_1, POWER_DOWN);
             }
             else if (strcmp(val,"ENABLE") == 0) {
-                sprintf(cmd, "add interface %s state ready", interface);
+                sprintf(cmd_2, "del interface %s link down", interface_2);
+                sprintf(cmd_1, "add interface %s power %f", interface_1, POWER_UP);
+                // sprintf(cmd, "add interface %s state ready", interface);
             } else {
                 fprintf(stderr, "Bad Admin-State received (%s).", val);
                 perror("voyagerSetChannelState: Bad value.");
             }
+
+            sendCommandVoyager(cmd_1);
+    	    sleep(1);
+            sendCommandVoyager(cmd_2);
+    	    sleep(1);
+    	    sendCommandVoyager("commit");
+    	    sprintf(cmd, "%s && %s", cmd_1, cmd_2);
         }
         break;
     }
     
-    sendCommandVoyager(cmd);
-    sleep(1);
-    sendCommandVoyager("commit");
-    
-    free(interface);
+    free(interface_1);
+    free(interface_2);
+    free(cmd_1);
+    free(cmd_2);
     return cmd;
 }
 
