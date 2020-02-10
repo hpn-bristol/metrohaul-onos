@@ -526,7 +526,10 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment.builder();
 
         selectorBuilder.matchInPort(src.port());
-        selectorBuilder.matchVlanId(vlanId);
+
+        if (vlanId != null) {
+            selectorBuilder.matchVlanId(vlanId);
+        }
 
         if (!slots.isEmpty()) {
             Port srcPort = deviceService.getPort(src.deviceId(), src.port());
