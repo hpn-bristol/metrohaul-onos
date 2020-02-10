@@ -1,0 +1,40 @@
+<INFO> 7-Feb-2020::16:48:09.276 onos-metrohaul-5gpicture confd[30313]: - Writing daemon log to /home/ubuntu/confd/examples.confd/OpenConfigRW-vlan/confd.log
+<INFO> 7-Feb-2020::16:48:09.281 onos-metrohaul-5gpicture confd[30313]: - Writing NETCONF log to /home/ubuntu/confd/examples.confd/OpenConfigRW-vlan/netconf.log
+<INFO> 7-Feb-2020::16:48:09.281 onos-metrohaul-5gpicture confd[30313]: - Daemon logging started
+<INFO> 7-Feb-2020::16:48:09.281 onos-metrohaul-5gpicture confd[30313]: - Writing audit log to /home/ubuntu/confd/examples.confd/OpenConfigRW-vlan/audit.log
+<INFO> 7-Feb-2020::16:48:09.281 onos-metrohaul-5gpicture confd[30313]: - Writing developer log to /home/ubuntu/confd/examples.confd/OpenConfigRW-vlan/devel.log
+<DEBUG> 7-Feb-2020::16:48:09.306 onos-metrohaul-5gpicture confd[30313]: - Loading file /home/ubuntu/confd/etc/confd/ietf-netconf-monitoring.fxs
+<DEBUG> 7-Feb-2020::16:48:09.308 onos-metrohaul-5gpicture confd[30313]: - Loading file /home/ubuntu/confd/etc/confd/tailf-common-monitoring.fxs
+<DEBUG> 7-Feb-2020::16:48:09.309 onos-metrohaul-5gpicture confd[30313]: - Loading file /home/ubuntu/confd/etc/confd/ietf-netconf-acm.fxs
+<DEBUG> 7-Feb-2020::16:48:09.310 onos-metrohaul-5gpicture confd[30313]: - Loading file /home/ubuntu/confd/etc/confd/iana-crypt-hash.fxs
+<DEBUG> 7-Feb-2020::16:48:09.311 onos-metrohaul-5gpicture confd[30313]: - Loading file ./openconfig-alarm-types.fxs
+<DEBUG> 7-Feb-2020::16:48:09.312 onos-metrohaul-5gpicture confd[30313]: - Loading file ./openconfig-yang-types.fxs
+<DEBUG> 7-Feb-2020::16:48:09.314 onos-metrohaul-5gpicture confd[30313]: - Loading file ./openconfig-types.fxs
+<DEBUG> 7-Feb-2020::16:48:09.314 onos-metrohaul-5gpicture confd[30313]: - Loading file ./ietf-interfaces.fxs
+<DEBUG> 7-Feb-2020::16:48:09.316 onos-metrohaul-5gpicture confd[30313]: - Loading file ./openconfig-platform-types.fxs
+<DEBUG> 7-Feb-2020::16:48:09.317 onos-metrohaul-5gpicture confd[30313]: - Loading file ./openconfig-interfaces.fxs
+<DEBUG> 7-Feb-2020::16:48:09.319 onos-metrohaul-5gpicture confd[30313]: - Loading file ./openconfig-if-ethernet.fxs
+<DEBUG> 7-Feb-2020::16:48:09.321 onos-metrohaul-5gpicture confd[30313]: - Loading file ./openconfig-transport-types.fxs
+<DEBUG> 7-Feb-2020::16:48:09.322 onos-metrohaul-5gpicture confd[30313]: - Loading file ./openconfig-platform.fxs
+<DEBUG> 7-Feb-2020::16:48:09.323 onos-metrohaul-5gpicture confd[30313]: - Loading file ./openconfig-platform-transceiver.fxs
+<DEBUG> 7-Feb-2020::16:48:09.325 onos-metrohaul-5gpicture confd[30313]: - Loading file /home/ubuntu/confd/etc/confd/ietf-yang-library.fxs
+<DEBUG> 7-Feb-2020::16:48:09.327 onos-metrohaul-5gpicture confd[30313]: - Loading file /home/ubuntu/confd/etc/confd/ietf-netconf-notifications.fxs
+<DEBUG> 7-Feb-2020::16:48:09.329 onos-metrohaul-5gpicture confd[30313]: - Loading file /home/ubuntu/confd/lib/confd/lib/netconf/netconf/priv/netconf_netmod.fxs
+<DEBUG> 7-Feb-2020::16:48:09.329 onos-metrohaul-5gpicture confd[30313]: - Loading file /home/ubuntu/confd/etc/confd/tailf-xsd-types.fxs
+<DEBUG> 7-Feb-2020::16:48:09.330 onos-metrohaul-5gpicture confd[30313]: - Loading file /home/ubuntu/confd/etc/confd/tailf-netconf-monitoring.fxs
+<DEBUG> 7-Feb-2020::16:48:09.332 onos-metrohaul-5gpicture confd[30313]: - Loading file /home/ubuntu/confd/etc/confd/tailf-confd-monitoring.fxs
+<DEBUG> 7-Feb-2020::16:48:09.335 onos-metrohaul-5gpicture confd[30313]: - Loading file /home/ubuntu/confd/etc/confd/tailf-common.fxs
+<DEBUG> 7-Feb-2020::16:48:09.336 onos-metrohaul-5gpicture confd[30313]: - Loading file /home/ubuntu/confd/etc/confd/tailf-acm.fxs
+<DEBUG> 7-Feb-2020::16:48:09.337 onos-metrohaul-5gpicture confd[30313]: - Loading file /home/ubuntu/confd/etc/confd/tailf-rollback.fxs
+<DEBUG> 7-Feb-2020::16:48:09.338 onos-metrohaul-5gpicture confd[30313]: - Loading file /home/ubuntu/confd/etc/confd/tailf-kicker.fxs
+<DEBUG> 7-Feb-2020::16:48:09.339 onos-metrohaul-5gpicture confd[30313]: - Loading file /home/ubuntu/confd/etc/confd/tailf-common-query.fxs
+<DEBUG> 7-Feb-2020::16:48:09.340 onos-metrohaul-5gpicture confd[30313]: - Loading file /home/ubuntu/confd/etc/confd/tailf-aaa.fxs
+<DEBUG> 7-Feb-2020::16:48:09.343 onos-metrohaul-5gpicture confd[30313]: - Loading file ./openconfig-terminal-device.fxs
+<DEBUG> 7-Feb-2020::16:48:09.363 onos-metrohaul-5gpicture confd[30313]: - Loading file /home/ubuntu/confd/etc/confd/confd.ccl
+<INFO> 7-Feb-2020::16:48:09.471 onos-metrohaul-5gpicture confd[30313]: - Starting to listen for Internal IPC on 127.0.0.1:4565
+<INFO> 7-Feb-2020::16:48:09.762 onos-metrohaul-5gpicture confd[30313]: - CDB load: processing file: ./confd-cdb/aaa_init.xml
+<INFO> 7-Feb-2020::16:48:09.803 onos-metrohaul-5gpicture confd[30313]: - CDB load: processing file: ./confd-cdb/ofc2020_voyager_1.xml
+<INFO> 7-Feb-2020::16:48:10.055 onos-metrohaul-5gpicture confd[30313]: - Starting to listen for NETCONF SSH on 0.0.0.0:2022
+<INFO> 7-Feb-2020::16:48:10.082 onos-metrohaul-5gpicture confd[30313]: - Starting to listen for NETCONF TCP on 0.0.0.0:2023
+<INFO> 7-Feb-2020::16:48:10.133 onos-metrohaul-5gpicture confd[30313]: - Starting to listen for CLI SSH on 0.0.0.0:2024
+<INFO> 7-Feb-2020::16:48:10.237 onos-metrohaul-5gpicture confd[30313]: - ConfD started vsn: 6.6

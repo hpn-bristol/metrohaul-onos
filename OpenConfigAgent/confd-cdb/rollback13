@@ -1,0 +1,17 @@
+# Created by: admin
+# Date: 2020-02-07 17:03:42
+# Via: maapi
+# Type: delta
+# Label: 
+# Comment: 
+# No: 10001
+
+terminal-device {
+    logical-channels {
+        channel 1104 {
+            state {
+                admin-state DISABLED;
+            }
+         }
+     }
+ }

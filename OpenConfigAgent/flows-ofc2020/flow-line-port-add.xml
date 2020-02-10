@@ -1,0 +1,20 @@
+<edit-config>
+  <target>
+    <running/>
+  </target>
+  <config xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
+    <components xmlns="http://openconfig.net/yang/platform">
+      <component>
+        <name>channel-10101</name>
+        <oc-opt-term:optical-channel xmlns:oc-opt-term="http://openconfig.net/yang/terminal-device">
+          <oc-opt-term:config>
+            <oc-opt-term:frequency>193700000</oc-opt-term:frequency>
+            <--oc-opt-term:target-output-power>0</oc-opt-term:target-output-power>
+            <oc-opt-term:operational-mode>0</oc-opt-term:operational-mode>
+            <oc-opt-term:line-port>port-10101</oc-opt-term:line-port-->
+          </oc-opt-term:config>
+        </oc-opt-term:optical-channel>
+      </component>
+    </components>
+  </config>
+</edit-config>

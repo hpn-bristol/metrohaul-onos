@@ -1,0 +1,319 @@
+<config xmlns:xc="urn:ietf:params:xml:ns:netconf:base:1.0">
+	<terminal-device xmlns="http://openconfig.net/yang/terminal-device">
+		<logical-channels>
+			<!-- Voyager 1 Client Port 3 (swp3) -->
+			<channel>
+				<index>1101</index>
+				<config>
+					<index>1101</index>
+					<description>Logical channel - Voyager 1 swp3</description>
+					<admin-state>DISABLED</admin-state>
+					<rate-class xmlns:type="http://openconfig.net/yang/transport-types">type:TRIB_RATE_10G</rate-class>
+					<trib-protocol xmlns:type="http://openconfig.net/yang/transport-types">type:PROT_10GE_LAN</trib-protocol>				
+					<logical-channel-type xmlns:type="http://openconfig.net/yang/transport-types">type:PROT_ETHERNET</logical-channel-type>				
+					<loopback-mode>NONE</loopback-mode>
+					<test-signal>0</test-signal>  					
+				</config>
+				<state>
+					<index>1101</index>
+					<description>Logical channel - Voyager 1 wp3</description>
+					<admin-state>DISABLED</admin-state>
+					<rate-class xmlns:type="http://openconfig.net/yang/transport-types">type:TRIB_RATE_10G</rate-class>
+					<trib-protocol xmlns:type="http://openconfig.net/yang/transport-types">type:PROT_10GE_LAN</trib-protocol>				
+					<logical-channel-type xmlns:type="http://openconfig.net/yang/transport-types">type:PROT_ETHERNET</logical-channel-type>				
+					<loopback-mode>NONE</loopback-mode>
+					<test-signal>0</test-signal>
+					<link-state>UP</link-state>
+				</state>
+				<ingress>
+					<config>
+						<transceiver>transceiver-1101</transceiver>
+					</config>
+					<state>
+						<transceiver>transceiver-1101</transceiver>
+					</state>
+				</ingress>
+				<logical-channel-assignments>
+				</logical-channel-assignments>
+			</channel>
+
+			<!-- Voyager 1 Client Port 4 (swp4) -->
+			<channel>
+				<index>1104</index>
+				<config>
+					<index>1104</index>
+					<description>Logical channel - Voyager 1 swp4</description>
+					<admin-state>DISABLED</admin-state>
+					<rate-class xmlns:type="http://openconfig.net/yang/transport-types">type:TRIB_RATE_10G</rate-class>
+					<trib-protocol xmlns:type="http://openconfig.net/yang/transport-types">type:PROT_10GE_LAN</trib-protocol>				
+					<logical-channel-type xmlns:type="http://openconfig.net/yang/transport-types">type:PROT_ETHERNET</logical-channel-type>				
+					<loopback-mode>NONE</loopback-mode>
+					<test-signal>0</test-signal>  					
+				</config>
+				<state>
+					<index>1104</index>
+					<description>Logical channel - Voyager 1 swp4</description>
+					<admin-state>DISABLED</admin-state>
+					<rate-class xmlns:type="http://openconfig.net/yang/transport-types">type:TRIB_RATE_10G</rate-class>
+					<trib-protocol xmlns:type="http://openconfig.net/yang/transport-types">type:PROT_10GE_LAN</trib-protocol>				
+					<logical-channel-type xmlns:type="http://openconfig.net/yang/transport-types">type:PROT_ETHERNET</logical-channel-type>				
+					<loopback-mode>NONE</loopback-mode>
+					<test-signal>0</test-signal>
+					<link-state>UP</link-state>
+				</state>
+				<ingress>
+					<config>
+						<transceiver>transceiver-1104</transceiver>
+					</config>
+					<state>
+						<transceiver>transceiver-1104</transceiver>
+					</state>
+				</ingress>
+				<logical-channel-assignments>
+				</logical-channel-assignments>
+			</channel>
+
+			<!-- Voyager 1 Line Port 1 (swpL1) -->
+			<channel>
+				<index>1201</index>
+				<config>
+					<index>1201</index>
+					<description>Logical channel - Voyager swpL1</description>
+					<admin-state>DISABLED</admin-state>
+					<logical-channel-type xmlns:type="http://openconfig.net/yang/transport-types">type:PROT_OTN</logical-channel-type>
+					<loopback-mode>NONE</loopback-mode>
+				</config>
+				<state>
+					<index>1201</index>
+					<description>Logical channel - Voyager swpL1</description>
+					<admin-state>DISABLED</admin-state>
+					<logical-channel-type xmlns:type="http://openconfig.net/yang/transport-types">type:PROT_OTN</logical-channel-type>
+					<loopback-mode>NONE</loopback-mode>
+					<link-state>UP</link-state>
+				</state>
+				<logical-channel-assignments>
+					<assignment>
+						<index>1201</index>
+						<config>
+							<index>1201</index>
+							<description>LCh 1201 to swpL1 assignment</description>
+							<allocation>100</allocation>
+							<assignment-type>OPTICAL_CHANNEL</assignment-type>
+							<optical-channel>channel-1201</optical-channel>
+						</config>
+						<state>
+							<index>1201</index>
+							<description>LCh 1201 to swpL1 assignment</description>
+							<allocation>100</allocation>
+							<assignment-type>OPTICAL_CHANNEL</assignment-type>
+							<optical-channel>channel-1201</optical-channel>
+						</state>
+					</assignment>
+				</logical-channel-assignments>
+			</channel>
+		</logical-channels>
+	</terminal-device>
+
+	<components xmlns="http://openconfig.net/yang/platform">
+		<component>
+			<name>device</name>
+			<config>
+				<name>device</name>
+			</config>
+			<state>
+				<name>Voyager</name>
+				<mfg-name>HPN-UoB</mfg-name>
+	         		<hardware-version>1.0.0</hardware-version>
+        	 		<firmware-version>1.0.0</firmware-version>
+         			<software-version>1.0.0</software-version>
+         			<serial-no>798709</serial-no>
+         			<type xmlns:typex="http://openconfig.net/yang/platform-types">typex:OPERATING_SYSTEM</type>
+			</state>
+		</component>
+
+		<component>
+			<name>port-1201</name>
+			<config>
+				<name>port-1201</name>
+			</config>
+			<state>
+				<name>port-1201</name>
+      			<type xmlns:typex="http://openconfig.net/yang/platform-types">typex:PORT</type>
+			</state>	
+			<subcomponents>
+				<subcomponent>
+					<name>channel-1201</name>
+					<config>
+						<name>channel-1201</name>
+					</config>
+					<state>
+						<name>channel-1201</name>
+					</state>
+				</subcomponent>
+			</subcomponents>
+			<properties>
+				<property>
+					<name>onos-index</name>
+					<config>
+						<name>onos-index</name>
+						<value>1201</value>
+					</config>
+					<state>
+						<name>onos-index</name>
+						<value>1201</value>
+					</state>
+				</property>
+				<property>
+					<name>odtn-port-type</name>
+					<config>
+						<name>odtn-port-type</name>
+						<value>line</value>
+					</config>
+					<state>
+						<name>odtn-port-type</name>
+						<value>line</value>
+					</state>
+				</property>
+			</properties>			
+		</component>
+		
+		<component>
+			<name>port-1101</name>
+			<config>
+				<name>port-1101</name>
+			</config>
+			<state>
+				<name>port-1101</name>
+      			<type xmlns:typex="http://openconfig.net/yang/platform-types">typex:PORT</type>
+			</state>
+			<subcomponents>
+				<subcomponent>
+					<name>transceiver-1101</name>
+					<config>
+						<name>transceiver-1101</name>
+					</config>
+					<state>
+						<name>transceiver-1101</name>
+					</state>
+				</subcomponent>
+			</subcomponents>
+			<properties>
+				<property>
+					<name>onos-index</name>
+					<config>
+						<name>onos-index</name>
+						<value>1101</value>
+					</config>
+					<state>
+						<name>onos-index</name>
+						<value>1101</value>
+					</state>
+				</property>
+				<property>
+					<name>odtn-port-type</name>
+					<config>
+						<name>odtn-port-type</name>
+						<value>client</value>
+					</config>
+					<state>
+						<name>odtn-port-type</name>
+						<value>client</value>
+					</state>
+				</property>
+			</properties>			
+		</component>
+
+		<component>
+			<name>port-1104</name>
+			<config>
+				<name>port-1104</name>
+			</config>
+			<state>
+				<name>port-1104</name>
+      			<type xmlns:typex="http://openconfig.net/yang/platform-types">typex:PORT</type>
+			</state>
+			<subcomponents>
+				<subcomponent>
+					<name>transceiver-1104</name>
+					<config>
+						<name>transceiver-1104</name>
+					</config>
+					<state>
+						<name>transceiver-1104</name>
+					</state>
+				</subcomponent>
+			</subcomponents>
+			<properties>
+				<property>
+					<name>onos-index</name>
+					<config>
+						<name>onos-index</name>
+						<value>1104</value>
+					</config>
+					<state>
+						<name>onos-index</name>
+						<value>1104</value>
+					</state>
+				</property>
+				<property>
+					<name>odtn-port-type</name>
+					<config>
+						<name>odtn-port-type</name>
+						<value>client</value>
+					</config>
+					<state>
+						<name>odtn-port-type</name>
+						<value>client</value>
+					</state>
+				</property>
+			</properties>			
+		</component>
+
+		<component>
+			<name>transceiver-1101</name>
+			<config>
+				<name>transceiver-1101</name>
+			</config>
+			<state>
+				<name>transceiver-1101</name>
+      			<type xmlns:typex="http://openconfig.net/yang/platform-types">typex:TRANSCEIVER</type>
+			</state>		
+		</component>
+
+		<component>
+			<name>transceiver-1104</name>
+			<config>
+				<name>transceiver-1104</name>
+			</config>
+			<state>
+				<name>transceiver-1104</name>
+      			<type xmlns:typex="http://openconfig.net/yang/platform-types">typex:TRANSCEIVER</type>
+			</state>		
+		</component>
+
+		<component>
+			<name>channel-1201</name>
+			<config>
+				<name>channel-1201</name>
+			</config>
+			<state>
+				<name>channel-1201</name>
+      			<type xmlns:typex="http://openconfig.net/yang/transport-types">typex:OPTICAL_CHANNEL</type>
+			</state>		
+			<optical-channel xmlns="http://openconfig.net/yang/terminal-device">
+				<config>
+					<frequency>190000000</frequency>
+					<line-port>port-1201</line-port>
+					<target-output-power>0</target-output-power>
+        			<operational-mode>0</operational-mode>
+				</config>
+				<state>
+					<frequency>190000000</frequency>
+					<line-port>port-1201</line-port>
+					<target-output-power>0</target-output-power>
+        			<operational-mode>0</operational-mode>
+				</state>
+			</optical-channel>
+		</component>
+	</components>
+</config>

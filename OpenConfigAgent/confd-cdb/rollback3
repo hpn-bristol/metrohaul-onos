@@ -1,0 +1,21 @@
+# Created by: admin
+# Date: 2020-02-07 17:07:25
+# Via: netconf
+# Type: delta
+# Label: 
+# Comment: 
+# No: 10011
+
+terminal-device {
+    logical-channels {
+        channel 1101 {
+            logical-channel-assignments {
+                delete:
+                assignment 1201;
+            }
+            config {
+                admin-state DISABLED;
+            }
+         }
+     }
+ }

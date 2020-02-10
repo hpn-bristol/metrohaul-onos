@@ -1,0 +1,27 @@
+# Created by: admin
+# Date: 2020-02-07 17:04:29
+# Via: netconf
+# Type: delta
+# Label: 
+# Comment: 
+# No: 10006
+
+terminal-device {
+    logical-channels {
+        channel 1104 {
+            logical-channel-assignments {
+                assignment 1201 {
+                    config {
+                        vlans {
+                            vlan 350 {
+                                config {
+                                    vlan-id 350;
+                                }
+                            }
+                        }
+                     }
+                 }
+             }
+         }
+     }
+ }

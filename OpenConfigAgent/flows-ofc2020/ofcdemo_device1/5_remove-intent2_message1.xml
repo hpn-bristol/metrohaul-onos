@@ -1,0 +1,20 @@
+<terminal-device xmlns="http://openconfig.net/yang/terminal-device" xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <logical-channels>
+    <channel>
+      <index>1104</index>
+      <logical-channel-assignments>
+        <assignment>
+          <index>1201</index>
+          <config>
+            <index>1201</index>
+            <vlans>
+              <vlan nc:operation="delete">
+                <index>200</index>
+              </vlan>
+            </vlans>
+          </config>
+        </assignment>
+      </logical-channel-assignments>
+    </channel>
+  </logical-channels>
+</terminal-device>

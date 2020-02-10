@@ -1,0 +1,14 @@
+<INFO> 7-Feb-2020::16:48:09.295 onos-metrohaul-5gpicture confd[30313]: confd embedded apps in early_phase0:
+	[]
+<INFO> 7-Feb-2020::16:48:09.511 onos-metrohaul-5gpicture confd[30313]: confd mmap_schema handle_info got msg: timeout
+<INFO> 7-Feb-2020::16:48:09.531 onos-metrohaul-5gpicture confd[30313]: confd embedded apps in phase0:
+	[]
+<INFO> 7-Feb-2020::16:48:09.761 onos-metrohaul-5gpicture confd[30313]: devel-cdb init files found in ./confd-cdb: aaa_init.xml, ofc2020_voyager_1.xml
+<INFO> 7-Feb-2020::16:48:09.950 onos-metrohaul-5gpicture confd[30313]: devel-cdb Compacted CDB journal file: 11 ms (304 nodes in memory, disk size 4.30 KiB -> 4.21 KiB)
+<INFO> 7-Feb-2020::16:48:09.963 onos-metrohaul-5gpicture confd[30313]: confd embedded apps in phase1:
+	[]
+<ERR> 7-Feb-2020::16:48:10.019 onos-metrohaul-5gpicture confd[30313]: devel-aaa Module "tailf-webui" in access rule "any-group/tailf-webui-user" does not exist - ignoring rule
+<INFO> 7-Feb-2020::16:48:10.033 onos-metrohaul-5gpicture confd[30313]: confd embedded apps in phase1_delayed:
+	[]
+<INFO> 7-Feb-2020::16:48:10.042 onos-metrohaul-5gpicture confd[30313]: confd embedded apps in phase2:
+	[]

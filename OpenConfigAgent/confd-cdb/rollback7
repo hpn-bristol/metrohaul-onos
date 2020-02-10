@@ -1,0 +1,27 @@
+# Created by: admin
+# Date: 2020-02-07 17:04:31
+# Via: netconf
+# Type: delta
+# Label: 
+# Comment: 
+# No: 10007
+
+terminal-device {
+    logical-channels {
+        channel 1104 {
+            logical-channel-assignments {
+                assignment 1201 {
+                    config {
+                        index           1201;
+                        assignment-type LOGICAL_CHANNEL;
+                        logical-channel 1201;
+                        allocation      10.0;
+                    }
+                }
+            }
+            config {
+                admin-state ENABLED;
+            }
+         }
+     }
+ }

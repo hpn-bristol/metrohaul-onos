@@ -1,0 +1,17 @@
+# Created by: admin
+# Date: 2020-02-07 17:06:06
+# Via: netconf
+# Type: delta
+# Label: 
+# Comment: 
+# No: 10009
+
+terminal-device {
+    logical-channels {
+        channel 1201 {
+            config {
+                admin-state ENABLED;
+            }
+         }
+     }
+ }
