@@ -201,6 +201,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         Resource dstPortResource = Resources.discrete(dst.deviceId(), dst.port()).resource();
         // If ports are not available, compilation fails
         if (!Stream.of(srcPortResource, dstPortResource).allMatch(resourceService::isAvailable)) {
+            log.info("Ports for the intent are not available.");
             throw new OpticalIntentCompilationException("Ports for the intent are not available. Intent: " + intent);
         }
         List<Resource> ports = ImmutableList.of(srcPortResource, dstPortResource);
@@ -277,10 +278,11 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
             }
         }
 
-        if (resourceService.allocate(intent.key(), required).isEmpty()) {
+        //Commenting this used resources are not considered busy for next intent request.
+        /*if (resourceService.allocate(intent.key(), required).isEmpty()) {
             throw new OpticalIntentCompilationException("Unable to allocate resources for intent " + intent
                     + ": resources=" + required);
-        }
+        }*/
 
         intentService.submit(connectivityIntent);
 
