@@ -68,6 +68,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.onosproject.net.intent.IntentState.WITHDRAWN;
 import static org.onosproject.net.optical.util.OpticalIntentUtility.createExplicitOpticalIntent;
 import static org.onosproject.net.optical.util.OpticalIntentUtility.createExplicitOpticalIntentVlan;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -148,6 +149,10 @@ public class OpticalIntentsWebResource extends AbstractWebResource {
         while (intentItr.hasNext()) {
 
             Intent intent = (Intent) intentItr.next();
+
+            if(intentService.getIntentState(intent.key()) == WITHDRAWN)
+                continue;
+
             if (intent instanceof OpticalConnectivityIntent) {
 
                 OpticalConnectivityIntent opticalConnectivityIntent = (OpticalConnectivityIntent) intent;
@@ -241,7 +246,9 @@ public class OpticalIntentsWebResource extends AbstractWebResource {
                 objectNode.put("dst", opticalCircuitIntent.getDst().toString());
                 objectNode.put("srcName", srcDeviceName);
                 objectNode.put("dstName", dstDeviceName);
-
+                if(opticalCircuitIntent.getVlanId() != null) {
+                    objectNode.put("VLAN id", opticalCircuitIntent.getVlanId().toString());
+                }
                 arrayFlows.add(objectNode);
             }
         }

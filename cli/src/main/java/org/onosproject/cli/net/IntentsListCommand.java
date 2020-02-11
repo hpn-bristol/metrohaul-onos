@@ -556,6 +556,9 @@ public class IntentsListCommand extends AbstractShellCommand {
             builder.append('\n').append(format("src=%s, dst=%s", ci.getSrc(), ci.getDst()));
             builder.append('\n').append(format("signal type=%s", ci.getSignalType()));
             builder.append('\n').append(format("bidirectional=%s", ci.isBidirectional()));
+            if(ci.getVlanId() != null) {
+                builder.append('\n').append(format("VLAN Id=%s", ci.getVlanId().toString()));
+            }
         } else if (intent instanceof OpticalConnectivityIntent) {
             OpticalConnectivityIntent ci = (OpticalConnectivityIntent) intent;
             builder.append('\n').append(format("src=%s, dst=%s", ci.getSrc(), ci.getDst()));
