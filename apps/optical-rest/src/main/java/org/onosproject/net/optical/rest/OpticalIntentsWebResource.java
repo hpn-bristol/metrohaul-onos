@@ -161,6 +161,7 @@ public class OpticalIntentsWebResource extends AbstractWebResource {
                 ObjectNode objectNode = mapper().createObjectNode();
 
                 objectNode.put("intent id", opticalConnectivityIntent.id().toString());
+                objectNode.put("intent type:", "OpticalConnectivityIntent");
                 objectNode.put("app id", opticalConnectivityIntent.appId().name());
                 objectNode.put("state",
                         intentService.getIntentState(opticalConnectivityIntent.key()).toString());
@@ -215,6 +216,31 @@ public class OpticalIntentsWebResource extends AbstractWebResource {
                         objectNode.put("pathName", path + " -> " + dstDeviceName);
                     }
                 }
+
+                arrayFlows.add(objectNode);
+            }
+
+            if (intent instanceof OpticalCircuitIntent) {
+
+                OpticalCircuitIntent opticalCircuitIntent = (OpticalCircuitIntent) intent;
+
+                Device srcDevice = deviceService.getDevice(opticalCircuitIntent.getSrc().deviceId());
+                Device dstDevice = deviceService.getDevice(opticalCircuitIntent.getDst().deviceId());
+
+                String srcDeviceName = srcDevice.annotations().value(AnnotationKeys.NAME);
+                String dstDeviceName = dstDevice.annotations().value(AnnotationKeys.NAME);
+
+                ObjectNode objectNode = mapper().createObjectNode();
+
+                objectNode.put("intent id", opticalCircuitIntent.id().toString());
+                objectNode.put("intent type:", "OpticalCircuitIntent");
+                objectNode.put("app id", opticalCircuitIntent.appId().name());
+                objectNode.put("state",
+                        intentService.getIntentState(opticalCircuitIntent.key()).toString());
+                objectNode.put("src", opticalCircuitIntent.getSrc().toString());
+                objectNode.put("dst", opticalCircuitIntent.getDst().toString());
+                objectNode.put("srcName", srcDeviceName);
+                objectNode.put("dstName", dstDeviceName);
 
                 arrayFlows.add(objectNode);
             }
