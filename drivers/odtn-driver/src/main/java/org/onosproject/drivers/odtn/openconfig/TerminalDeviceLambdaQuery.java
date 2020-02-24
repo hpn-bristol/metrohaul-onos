@@ -18,13 +18,18 @@
 
 package org.onosproject.drivers.odtn.openconfig;
 
+import com.google.common.collect.ImmutableSet;
 import org.onosproject.driver.optical.query.CBandLambdaQuery;
 import org.onosproject.net.ChannelSpacing;
+import org.onosproject.net.GridType;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.behaviour.LambdaQuery;
+import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.slf4j.Logger;
 
 import java.util.Set;
+import java.util.stream.IntStream;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -32,6 +37,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Lambda Query for OpenConfig based terminal devices.
  */
+
+/*
 public class TerminalDeviceLambdaQuery extends CBandLambdaQuery {
 
     protected static final Logger log = getLogger(TerminalDeviceLambdaQuery.class);
@@ -54,3 +61,27 @@ public class TerminalDeviceLambdaQuery extends CBandLambdaQuery {
         //         .collect(Collectors.toSet());
     }
 }
+
+*/
+
+
+public class TerminalDeviceLambdaQuery extends AbstractHandlerBehaviour implements LambdaQuery {
+
+    private ChannelSpacing channelSpacing = ChannelSpacing.CHL_50GHZ;
+
+    //Corresponding to freq 193.8THz
+    private int lambdaCountMin = 14;
+
+    //Corresponding to freq 193.8
+    private int lambdaCountMax = 49;
+
+    private int slotGranularity = 4;
+
+    @Override
+    public Set<OchSignal> queryLambdas(PortNumber port) {
+        return IntStream.range(lambdaCountMin, lambdaCountMax)
+                .mapToObj(x -> new OchSignal(GridType.DWDM, channelSpacing, x, slotGranularity))
+                .collect(ImmutableSet.toImmutableSet());
+    }
+}
+
